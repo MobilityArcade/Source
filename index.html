@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>SOURCE 7.1</title>
+<title>SOURCE 8.1</title>
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
@@ -12,11 +12,15 @@ html,body{
 canvas{display:block}
 #hud{
   position:absolute;top:14px;left:14px;z-index:10;
-  background:rgba(0,0,0,.45);padding:12px 14px;border-radius:12px;
-  font-size:13px;line-height:1.45;letter-spacing:.3px;backdrop-filter:blur(6px);
+  background:transparent;padding:0;border-radius:0;
+  font-size:13px;line-height:1.45;letter-spacing:.4px;
+  text-shadow:0 0 8px rgba(255,255,255,.35),0 0 18px rgba(80,180,255,.25);
+  opacity:.86;
+  pointer-events:none;
 }
-#title{font-size:18px;font-weight:800;letter-spacing:4px}
+#title{font-size:18px;font-weight:800;letter-spacing:4px;opacity:.92}
 #signal{opacity:.9}
+#world{color:#ffd36a;text-shadow:0 0 10px rgba(255,211,106,.65)}
 #center{
   position:absolute;left:50%;top:50%;width:12px;height:12px;border-radius:50%;
   transform:translate(-50%,-50%);
@@ -39,10 +43,17 @@ canvas{display:block}
   box-shadow:0 0 28px rgba(255,153,0,0);
   z-index:8;pointer-events:none;
 }
+#foundFlash,#worldFlash{
+  position:absolute;inset:0;display:none;place-items:center;text-align:center;
+  font-weight:900;letter-spacing:6px;z-index:7;
+}
 #foundFlash{
-  position:absolute;inset:0;display:none;place-items:center;
   background:radial-gradient(circle,rgba(255,130,0,.48),rgba(0,0,0,.05) 42%,rgba(0,0,0,.9));
-  font-size:42px;font-weight:900;letter-spacing:6px;text-align:center;
+  font-size:42px;
+}
+#worldFlash{
+  background:radial-gradient(circle,rgba(120,90,255,.34),rgba(0,0,0,.10) 40%,rgba(0,0,0,.92));
+  font-size:34px;
 }
 #hint{
   position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
@@ -52,7 +63,8 @@ canvas{display:block}
 </head>
 <body>
 <div id="hud">
-  <div id="title">SOURCE 7.1</div>
+  <div id="title">SOURCE 8.1</div>
+  <div>World: <span id="world">Void</span></div>
   <div>Level: <span id="level">1</span></div>
   <div>Round: <span id="round">1</span>/10</div>
   <div>Found: <span id="found">0</span>/<span id="total">1</span></div>
@@ -61,6 +73,7 @@ canvas{display:block}
 <div id="center"></div>
 <div id="lockRing"></div>
 <div id="foundFlash">FOUND</div>
+<div id="worldFlash"></div>
 <div id="hint">Drag to look · Pinch / wheel to drift · Stay inside the sphere · Find the Source</div>
 
 <script type="module">
@@ -85,13 +98,24 @@ let activeIndex = 0;
 let foundCount = 0;
 let innerParticles;
 let outerCosmos;
-let nebulaClouds = [];
+let skyObjects = [];
+let currentWorldIndex = -1;
 let yaw = Math.PI;
 let pitch = 0;
 let moveVelocity = 0;
 let foundLock = false;
 let roundTransitioning = false;
 const clock = new THREE.Clock();
+
+const WORLDS = [
+  {name:"Void",       colors:[0x1d2cff,0x5d3dff,0xb24fff,0xff4fa3,0xffffff,0x6dd6ff], fog:0.00100, accent:0x8aa2ff},
+  {name:"Nebula",     colors:[0x9b6dff,0xff4fa3,0xff7bd5,0x6dd6ff,0xffffff,0xffd36a], fog:0.00108, accent:0xb36dff},
+  {name:"Galaxy",     colors:[0xffffff,0xffd36a,0xff8a3d,0x6d8cff,0xb36dff,0x8fffff], fog:0.00092, accent:0xffd36a},
+  {name:"Singularity",colors:[0xff3d6e,0xff6a00,0x7b3cff,0x1d2cff,0xffffff,0x111133], fog:0.00118, accent:0xff3d6e},
+  {name:"Aurora",     colors:[0x5dffb4,0x8fffff,0xb36dff,0xff7bd5,0xffffff,0xffd36a], fog:0.00102, accent:0x5dffb4},
+  {name:"Resonance",  colors:[0x39ff14,0x9b6dff,0xffd36a,0x8fffff,0xffffff,0xff7bd5], fog:0.00097, accent:0x39ff14},
+  {name:"Ascension",  colors:[0xffffff,0xffd36a,0xff7bd5,0x8fffff,0xb36dff,0x5dffb4], fog:0.00087, accent:0xffffff}
+];
 
 let audioCtx, baseOsc, baseGain, shimmerOsc, shimmerGain, humOsc, humGain, beatOsc, beatGain, resonanceOsc, resonanceGain;
 let beatTimer = 0;
@@ -101,10 +125,8 @@ function initAudio(){
     if(audioCtx.state !== "running") audioCtx.resume();
     return;
   }
-
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-  // Always-present low cosmic frequency.
   baseOsc = audioCtx.createOscillator();
   baseGain = audioCtx.createGain();
   baseOsc.type = "sine";
@@ -113,7 +135,6 @@ function initAudio(){
   baseOsc.connect(baseGain).connect(audioCtx.destination);
   baseOsc.start();
 
-  // Soft higher space shimmer.
   shimmerOsc = audioCtx.createOscillator();
   shimmerGain = audioCtx.createGain();
   shimmerOsc.type = "sine";
@@ -122,7 +143,6 @@ function initAudio(){
   shimmerOsc.connect(shimmerGain).connect(audioCtx.destination);
   shimmerOsc.start();
 
-  // Directional source hum.
   humOsc = audioCtx.createOscillator();
   humGain = audioCtx.createGain();
   humOsc.type = "sine";
@@ -163,7 +183,6 @@ function discoverySound(){
   const now = audioCtx.currentTime;
   resonanceOsc.frequency.cancelScheduledValues(now);
   resonanceGain.gain.cancelScheduledValues(now);
-
   resonanceOsc.frequency.setValueAtTime(120, now);
   resonanceOsc.frequency.exponentialRampToValueAtTime(620, now + 0.75);
   resonanceGain.gain.setValueAtTime(0.0001, now);
@@ -197,21 +216,39 @@ function randomPointInSphere(radius){
   );
 }
 
+function currentWorld(){
+  const index = Math.floor((level - 1) / 5) % WORLDS.length;
+  return WORLDS[index];
+}
+
+function updateWorld(force=false){
+  const index = Math.floor((level - 1) / 5) % WORLDS.length;
+  if(!force && index === currentWorldIndex) return;
+  currentWorldIndex = index;
+  const world = WORLDS[index];
+
+  scene.fog.density = world.fog;
+  document.getElementById("world").textContent = world.name;
+  makeOuterCosmos(world);
+
+  if(level > 1 || force){
+    const wf = document.getElementById("worldFlash");
+    wf.innerHTML = world.name.toUpperCase();
+    wf.style.display = "grid";
+    setTimeout(()=>wf.style.display = "none", 1200);
+  }
+}
+
 function makeInnerParticles(){
   if(innerParticles) scene.remove(innerParticles);
 
   const count = 1550;
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
-
-  const palette = [
-    new THREE.Color(0xffffff),
-    new THREE.Color(0x9b6dff),
-    new THREE.Color(0xff4fa3),
-    new THREE.Color(0xffd36a),
-    new THREE.Color(0xaab6ff),
-    new THREE.Color(0x777777)
-  ];
+  const world = currentWorld();
+  const palette = world.colors.map(c => new THREE.Color(c)).concat([
+    new THREE.Color(0xffffff), new THREE.Color(0x777777)
+  ]);
 
   for(let i=0;i<count;i++){
     const p = randomPointInSphere(sphereRadius * 0.98);
@@ -220,7 +257,7 @@ function makeInnerParticles(){
     positions[i*3+2] = p.z;
 
     const c = palette[Math.floor(Math.random()*palette.length)].clone();
-    const dim = 0.24 + Math.random() * 0.45;
+    const dim = 0.30 + Math.random() * 0.50;
     c.multiplyScalar(dim);
     colors[i*3] = c.r;
     colors[i*3+1] = c.g;
@@ -243,41 +280,24 @@ function makeInnerParticles(){
   scene.add(innerParticles);
 }
 
-function makeOuterCosmos(){
-  if(outerCosmos) scene.remove(outerCosmos);
-  nebulaClouds.forEach(n => scene.remove(n));
-  nebulaClouds = [];
-
-  const count = 2600;
+function createSkyPointCloud(world, count, radius, size, opacity){
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
-  const radius = 2600;
-
-  const palette = [
-    new THREE.Color(0xffffff),
-    new THREE.Color(0x6d8cff),
-    new THREE.Color(0xb36dff),
-    new THREE.Color(0xffd77a),
-    new THREE.Color(0xff6da8),
-    new THREE.Color(0x8fffff)
-  ];
+  const palette = world.colors.map(c => new THREE.Color(c));
 
   for(let i=0;i<count;i++){
     const u = Math.random();
     const v = Math.random();
     const theta = u * Math.PI * 2;
     const phi = Math.acos(2*v - 1);
-    const jitter = radius + (Math.random()*2-1)*90;
-    const x = jitter * Math.sin(phi) * Math.cos(theta);
-    const y = jitter * Math.sin(phi) * Math.sin(theta);
-    const z = jitter * Math.cos(phi);
+    const jitter = radius + (Math.random()*2-1)*120;
 
-    positions[i*3] = x;
-    positions[i*3+1] = y;
-    positions[i*3+2] = z;
+    positions[i*3] = jitter * Math.sin(phi) * Math.cos(theta);
+    positions[i*3+1] = jitter * Math.sin(phi) * Math.sin(theta);
+    positions[i*3+2] = jitter * Math.cos(phi);
 
     const c = palette[Math.floor(Math.random()*palette.length)].clone();
-    c.multiplyScalar(0.35 + Math.random()*0.55);
+    c.multiplyScalar(0.42 + Math.random()*0.72);
     colors[i*3] = c.r;
     colors[i*3+1] = c.g;
     colors[i*3+2] = c.b;
@@ -288,52 +308,186 @@ function makeOuterCosmos(){
   geo.setAttribute("color", new THREE.BufferAttribute(colors,3));
 
   const mat = new THREE.PointsMaterial({
-    size:3.4,
-    sizeAttenuation:true,
-    transparent:true,
-    opacity:0.62,
-    vertexColors:true
+    size, sizeAttenuation:true, transparent:true, opacity, vertexColors:true
   });
 
-  outerCosmos = new THREE.Points(geo, mat);
-  scene.add(outerCosmos);
+  return new THREE.Points(geo, mat);
+}
 
-  // Distant nebula clusters / sky landmarks.
-  const nebulaData = [
-    {color:0x7b3cff, pos:[-900, 360, -2100], scale:[220,90,1]},
-    {color:0xffa531, pos:[1300, -240, -1850], scale:[280,100,1]},
-    {color:0xff4fa3, pos:[-1600, -420, 1200], scale:[240,80,1]},
-    {color:0x6dd6ff, pos:[1200, 560, 1700], scale:[260,90,1]}
-  ];
+function addNebulaCluster(color, position, scale=1, cloudCount=26){
+  const group = new THREE.Group();
+  for(let i=0;i<cloudCount;i++){
+    const g = new THREE.SphereGeometry(24 + Math.random()*38, 24, 24);
+    const m = new THREE.MeshBasicMaterial({
+      color,
+      transparent:true,
+      opacity:0.022 + Math.random()*0.044,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    });
+    const s = new THREE.Mesh(g,m);
+    s.position.set((Math.random()*2-1)*280*scale, (Math.random()*2-1)*115*scale, (Math.random()*2-1)*90);
+    s.scale.set(3.0 + Math.random()*4.5, 0.9 + Math.random()*1.7, 0.7);
+    group.add(s);
+  }
+  group.position.copy(position);
+  group.lookAt(0,0,0);
+  scene.add(group);
+  skyObjects.push(group);
+  return group;
+}
 
-  nebulaData.forEach(d=>{
-    const group = new THREE.Group();
-    for(let i=0;i<18;i++){
-      const g = new THREE.SphereGeometry(18 + Math.random()*26, 24, 24);
+function addGalaxy(color, position, scale=1){
+  const group = new THREE.Group();
+  for(let arm=0; arm<3; arm++){
+    for(let i=0;i<90;i++){
+      const t = i/90 * Math.PI * 2.4 + arm * Math.PI*2/3;
+      const r = i * 2.3 * scale;
+      const g = new THREE.SphereGeometry(6 + Math.random()*12, 12, 12);
       const m = new THREE.MeshBasicMaterial({
-        color:d.color,
+        color: i%3===0 ? 0xffffff : color,
         transparent:true,
-        opacity:0.018 + Math.random()*0.026,
+        opacity:0.05,
         blending:THREE.AdditiveBlending,
         depthWrite:false
       });
       const s = new THREE.Mesh(g,m);
-      s.position.set(
-        (Math.random()*2-1)*d.scale[0],
-        (Math.random()*2-1)*d.scale[1],
-        (Math.random()*2-1)*80
-      );
-      s.scale.set(2.8 + Math.random()*3, 0.9 + Math.random()*1.4, 0.7);
+      s.position.set(Math.cos(t)*r, Math.sin(t)*r*0.42, (Math.random()*2-1)*40);
+      s.scale.set(2.2,1.1,1);
       group.add(s);
     }
-    group.position.set(d.pos[0], d.pos[1], d.pos[2]);
-    group.lookAt(0,0,0);
-    scene.add(group);
-    nebulaClouds.push(group);
-  });
+  }
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(46*scale, 32, 32),
+    new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.09, blending:THREE.AdditiveBlending, depthWrite:false})
+  );
+  group.add(core);
+  group.position.copy(position);
+  group.lookAt(0,0,0);
+  scene.add(group);
+  skyObjects.push(group);
 }
 
-makeOuterCosmos();
+function addSingularity(position, scale=1){
+  const group = new THREE.Group();
+  const black = new THREE.Mesh(
+    new THREE.SphereGeometry(70*scale, 48, 48),
+    new THREE.MeshBasicMaterial({color:0x000000})
+  );
+  group.add(black);
+  for(let i=0;i<5;i++){
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry((92+i*20)*scale, (98+i*20)*scale, 96),
+      new THREE.MeshBasicMaterial({
+        color:i%2?0xff3d6e:0x7b3cff,
+        transparent:true,
+        opacity:0.16-i*0.018,
+        side:THREE.DoubleSide,
+        blending:THREE.AdditiveBlending,
+        depthWrite:false
+      })
+    );
+    ring.rotation.z = i*0.28;
+    ring.scale.y = 0.38 + i*0.04;
+    group.add(ring);
+  }
+  group.position.copy(position);
+  group.lookAt(0,0,0);
+  scene.add(group);
+  skyObjects.push(group);
+}
+
+function addAurora(position, colors){
+  const group = new THREE.Group();
+  colors.forEach((color,idx)=>{
+    for(let i=0;i<22;i++){
+      const g = new THREE.SphereGeometry(18 + Math.random()*22, 16, 16);
+      const m = new THREE.MeshBasicMaterial({
+        color,
+        transparent:true,
+        opacity:0.025,
+        blending:THREE.AdditiveBlending,
+        depthWrite:false
+      });
+      const s = new THREE.Mesh(g,m);
+      const x = (i-11)*42;
+      const y = Math.sin(i*.7+idx)*70 + idx*38;
+      s.position.set(x,y,(Math.random()*2-1)*45);
+      s.scale.set(4.5,1.0,0.7);
+      group.add(s);
+    }
+  });
+  group.position.copy(position);
+  group.lookAt(0,0,0);
+  scene.add(group);
+  skyObjects.push(group);
+}
+
+function addResonanceGeometry(position){
+  const group = new THREE.Group();
+  const color = 0x39ff14;
+  for(let i=0;i<7;i++){
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(60+i*28, 62+i*28, 96),
+      new THREE.MeshBasicMaterial({
+        color:i%2?0x9b6dff:color,
+        transparent:true,
+        opacity:0.08,
+        side:THREE.DoubleSide,
+        blending:THREE.AdditiveBlending,
+        depthWrite:false
+      })
+    );
+    ring.rotation.z = i * 0.26;
+    ring.rotation.x = i * 0.11;
+    group.add(ring);
+  }
+  group.position.copy(position);
+  group.lookAt(0,0,0);
+  scene.add(group);
+  skyObjects.push(group);
+}
+
+function makeOuterCosmos(world){
+  if(outerCosmos) scene.remove(outerCosmos);
+  skyObjects.forEach(o => scene.remove(o));
+  skyObjects = [];
+
+  outerCosmos = createSkyPointCloud(world, 3600, 2600, 3.6, 0.78);
+  scene.add(outerCosmos);
+
+  if(world.name === "Void"){
+    addNebulaCluster(0x1d2cff, new THREE.Vector3(-1050, 360, -2150), 0.95, 18);
+    addNebulaCluster(0x7b3cff, new THREE.Vector3(1350, -260, -1750), 0.80, 16);
+    addNebulaCluster(0xff4fa3, new THREE.Vector3(-1550, -380, 1300), 0.65, 12);
+  }
+  if(world.name === "Nebula"){
+    addNebulaCluster(0x9b6dff, new THREE.Vector3(-900, 360, -2100), 1.25, 30);
+    addNebulaCluster(0xff4fa3, new THREE.Vector3(1250, -360, -1800), 1.05, 26);
+    addNebulaCluster(0x6dd6ff, new THREE.Vector3(-1500, -320, 1200), 0.9, 22);
+  }
+  if(world.name === "Galaxy"){
+    addGalaxy(0xffd36a, new THREE.Vector3(1250, 120, -2100), 1.1);
+    addNebulaCluster(0x6d8cff, new THREE.Vector3(-1400, -420, 1500), 0.85, 18);
+  }
+  if(world.name === "Singularity"){
+    addSingularity(new THREE.Vector3(900, 220, -2200), 1.15);
+    addNebulaCluster(0xff3d6e, new THREE.Vector3(-1300, -340, -1700), 0.9, 22);
+  }
+  if(world.name === "Aurora"){
+    addAurora(new THREE.Vector3(-200, 450, -2300), [0x5dffb4,0x8fffff,0xb36dff]);
+    addNebulaCluster(0x5dffb4, new THREE.Vector3(1450, -280, 1500), 0.75, 16);
+  }
+  if(world.name === "Resonance"){
+    addResonanceGeometry(new THREE.Vector3(1050, 300, -2200));
+    addNebulaCluster(0x9b6dff, new THREE.Vector3(-1300, -360, 1500), 0.85, 18);
+  }
+  if(world.name === "Ascension"){
+    addGalaxy(0xffffff, new THREE.Vector3(900, 220, -2150), 1.25);
+    addAurora(new THREE.Vector3(-850, -120, 2100), [0xffd36a,0xff7bd5,0x8fffff]);
+    addNebulaCluster(0xffffff, new THREE.Vector3(-1400, 400, -1450), 0.9, 18);
+  }
+}
 
 function beaconObject(pos){
   const group = new THREE.Group();
@@ -375,6 +529,8 @@ function beaconObject(pos){
 }
 
 function createRound(){
+  updateWorld();
+
   beacons.forEach(b => scene.remove(b));
   beacons = [];
   foundCount = 0;
@@ -387,12 +543,10 @@ function createRound(){
   for(let i=0;i<count;i++){
     let pos = randomPointInSphere(sphereRadius * 0.72);
     let tries = 0;
-
     while(tries < 80 && beacons.some(b => b.position.distanceTo(pos) < minSpacing)){
       pos = randomPointInSphere(sphereRadius * 0.72);
       tries++;
     }
-
     const b = beaconObject(pos);
     scene.add(b);
     beacons.push(b);
@@ -412,6 +566,7 @@ function createRound(){
 }
 
 function updateHUD(signalText="Signal: listening..."){
+  document.getElementById("world").textContent = currentWorld().name;
   document.getElementById("level").textContent = level;
   document.getElementById("round").textContent = round;
   document.getElementById("found").textContent = foundCount;
@@ -419,6 +574,7 @@ function updateHUD(signalText="Signal: listening..."){
   document.getElementById("signal").textContent = signalText;
 }
 
+updateWorld(true);
 createRound();
 
 let dragging = false, lastX=0, lastY=0;
@@ -473,17 +629,12 @@ window.addEventListener("wheel", e=>{
 function applySoftBoundary(){
   const d = camera.position.length();
   const maxR = sphereRadius * 0.94;
-
   if(d > maxR){
     const normal = camera.position.clone().normalize();
     camera.position.copy(normal.multiplyScalar(maxR));
-
-    // Remove outward component of velocity by damping movement.
     const f = forwardVector();
     if(f.dot(normal) > 0) moveVelocity *= 0.18;
   }
-
-  // Add resistance near the edge so it feels like a soft invisible sphere.
   const edgeStart = sphereRadius * 0.78;
   const current = camera.position.length();
   if(current > edgeStart){
@@ -505,16 +656,13 @@ function setNextActive(){
 
     setTimeout(()=>{
       round += 1;
-
       if(round > 10){
         round = 1;
         level += 1;
         sphereRadius *= 1.18;
       }
-
       createRound();
     }, 900);
-
     return;
   }
 
@@ -570,8 +718,8 @@ function animate(){
     outerCosmos.rotation.x += dt * 0.0004;
   }
 
-  nebulaClouds.forEach((n,i)=>{
-    n.rotation.z += dt * (0.002 + i*0.0004);
+  skyObjects.forEach((n,i)=>{
+    n.rotation.z += dt * (0.0012 + i*0.00025);
   });
 
   const active = beacons[activeIndex];
@@ -589,14 +737,13 @@ function animate(){
     lock = THREE.MathUtils.smoothstep(alignmentRaw, 0.86, 0.985) * THREE.MathUtils.smoothstep(closeness, 0.18, 0.72);
 
     if(audioCtx && humGain){
-      // Constant background never disappears.
+      const wi = currentWorldIndex;
       baseGain.gain.value = 0.024 + Math.sin(time*0.0007)*0.004;
-      baseOsc.frequency.value = 32 + Math.sin(time*0.00045)*2.5;
+      baseOsc.frequency.value = 30 + wi*1.8 + Math.sin(time*0.00045)*2.5;
 
       shimmerGain.gain.value = 0.004 + lock * 0.018;
-      shimmerOsc.frequency.value = 128 + lock * 96 + Math.sin(time*0.001)*7;
+      shimmerOsc.frequency.value = 128 + lock * 96 + wi*8 + Math.sin(time*0.001)*7;
 
-      // Source direction tone.
       humGain.gain.value = 0.010 + signal * 0.085 + lock * 0.035;
       humOsc.frequency.value = 48 + signal * 58 + lock * 45;
 
