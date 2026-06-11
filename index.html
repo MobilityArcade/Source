@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SOURCE</title>
-<!-- SOURCE V9: Scoring, combo, timer, tiered Sources, stardust collectibles, warp reticle animation -->
+<!-- SOURCE 8.7 build from stable upload -->
+<!-- SOURCE 8.6: Outer density, hold-anywhere warp, ring variation, shooting stars -->
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
@@ -42,55 +43,7 @@ canvas{display:block}
   border:1px solid rgba(57,255,20,.75);
   box-shadow:0 0 18px rgba(57,255,20,.55);
 }
-#center.warping{
-  animation:warpPulse .72s ease-in-out infinite;
-  box-shadow:0 0 18px #39ff14,0 0 42px #39ff14,0 0 90px rgba(57,255,20,.95);
-}
-@keyframes warpPulse{
-  0%{transform:translate(-50%,-50%) scale(1);}
-  55%{transform:translate(-50%,-50%) scale(3.1);}
-  100%{transform:translate(-50%,-50%) scale(1);}
-}
-.scorePop{
-  position:absolute;
-  z-index:20;
-  left:50%;
-  top:43%;
-  transform:translate(-50%,-50%);
-  font-size:22px;
-  font-weight:900;
-  letter-spacing:2px;
-  color:#ffd36a;
-  text-shadow:0 0 14px rgba(255,211,106,.9),0 0 32px rgba(255,120,0,.45);
-  pointer-events:none;
-  opacity:0;
-  animation:scoreRise 900ms ease-out forwards;
-}
-@keyframes scoreRise{
-  0%{opacity:0;transform:translate(-50%,-20%) scale(.85);}
-  18%{opacity:1;}
-  100%{opacity:0;transform:translate(-50%,-145%) scale(1.12);}
-}
-#levelSummary{
-  position:absolute;
-  inset:0;
-  display:none;
-  place-items:center;
-  z-index:18;
-  background:radial-gradient(circle,rgba(20,40,80,.48),rgba(0,0,0,.15) 48%,rgba(0,0,0,.92));
-  text-align:center;
-  letter-spacing:2px;
-  pointer-events:none;
-}
-#levelSummary .box{
-  text-shadow:0 0 14px rgba(255,255,255,.6);
-  font-weight:800;
-  line-height:1.8;
-}
-#levelSummary .big{
-  font-size:34px;
-  letter-spacing:6px;
-}
+#center.warping{box-shadow:0 0 18px #39ff14,0 0 42px #39ff14,0 0 90px rgba(57,255,20,.95);}
 #lockRing{
   position:absolute;left:50%;top:50%;width:64px;height:64px;border-radius:50%;
   transform:translate(-50%,-50%);
@@ -120,10 +73,6 @@ canvas{display:block}
 <div id="hud">
   <div id="title">SOURCE</div>
   <div>World: <span id="world">Void</span></div>
-  <div>Score: <span id="score">0</span></div>
-  <div>Best: <span id="bestScore">0</span></div>
-  <div>Time: <span id="timer">60</span></div>
-  <div>Combo: <span id="combo">1x</span></div>
   <div>Level: <span id="level">1</span></div>
   <div>Round: <span id="round">1</span>/10</div>
   <div>Found: <span id="found">0</span>/<span id="total">1</span></div>
@@ -133,8 +82,7 @@ canvas{display:block}
 <div id="lockRing"></div>
 <div id="foundFlash">FOUND</div>
 <div id="worldFlash"></div>
-<div id="levelSummary"><div class="box"><div class="big">LEVEL COMPLETE</div><div id="summaryText"></div></div></div>
-<div id="hint">Drag to look · Pinch / wheel to drift · Hold anywhere to warp · Collect points · Find the Source</div>
+<div id="hint">Drag to look · Pinch / wheel to drift · Hold anywhere to warp · Find the Source</div>
 
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -156,14 +104,6 @@ let sphereRadius = 130;
 let beacons = [];
 let activeIndex = 0;
 let foundCount = 0;
-let score = 0;
-let bestScore = Number(localStorage.getItem("sourceBestScore") || 0);
-let levelStartScore = 0;
-let levelTimeLeft = 60;
-let comboMultiplier = 1;
-let comboTimeLeft = 0;
-let bestComboThisLevel = 1;
-let stardust = [];
 let innerParticles;
 let outerCosmos;
 let skyObjects = [];
@@ -693,10 +633,8 @@ function makeOuterCosmos(world){
 function clearLandmarks(){
   landmarks.forEach(l => scene.remove(l));
   particleRivers.forEach(p => scene.remove(p));
-  stardust.forEach(s => scene.remove(s));
   landmarks = [];
   particleRivers = [];
-  stardust = [];
 }
 
 function addLandmark(obj){
@@ -976,115 +914,8 @@ window.addEventListener("pointercancel", ()=>{
 }, {passive:false});
 
 
-
-function showScorePop(text){
-  const el = document.createElement("div");
-  el.className = "scorePop";
-  el.textContent = text;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 950);
-}
-
-function addScore(points, label="+"){
-  const gained = Math.round(points * comboMultiplier);
-  score += gained;
-  if(score > bestScore){
-    bestScore = score;
-    localStorage.setItem("sourceBestScore", String(bestScore));
-  }
-  showScorePop(label + gained);
-  updateHUD();
-}
-
-function createStardust(){
-  stardust.forEach(s => scene.remove(s));
-  stardust = [];
-  const colors = [
-    {color:0xffffff, points:10, size:1.35},
-    {color:0x6dd6ff, points:25, size:1.55},
-    {color:0xb36dff, points:50, size:1.75},
-    {color:0xffd36a, points:100, size:2.0}
-  ];
-  const count = Math.min(42, 14 + round * 3);
-  for(let i=0;i<count;i++){
-    const data = colors[Math.floor(Math.random()*colors.length)];
-    const core = new THREE.Mesh(
-      new THREE.SphereGeometry(data.size, 16, 16),
-      new THREE.MeshBasicMaterial({
-        color:data.color,
-        transparent:true,
-        opacity:0.72,
-        blending:THREE.AdditiveBlending,
-        depthWrite:false
-      })
-    );
-    const aura = new THREE.Mesh(
-      new THREE.SphereGeometry(data.size*3.2, 16, 16),
-      new THREE.MeshBasicMaterial({
-        color:data.color,
-        transparent:true,
-        opacity:0.07,
-        blending:THREE.AdditiveBlending,
-        depthWrite:false
-      })
-    );
-    const group = new THREE.Group();
-    group.add(aura, core);
-    group.position.copy(randomPointInSphere(sphereRadius * 0.78));
-    group.userData.points = data.points;
-    group.userData.spin = 0.5 + Math.random()*0.8;
-    scene.add(group);
-    stardust.push(group);
-  }
-}
-
-function collectStardust(){
-  for(let i=stardust.length-1;i>=0;i--){
-    const s = stardust[i];
-    s.rotation.y += 0.025 * (s.userData.spin || 1);
-    s.rotation.x += 0.012;
-    const d = camera.position.distanceTo(s.position);
-    if(d < 5.8){
-      addScore(s.userData.points, "+");
-      scene.remove(s);
-      stardust.splice(i,1);
-    }
-  }
-}
-
-function nextLevelByTimer(){
-  const earned = score - levelStartScore;
-  const summary = document.getElementById("levelSummary");
-  const summaryText = document.getElementById("summaryText");
-  summaryText.innerHTML = "Score +" + earned + "<br>Best Combo " + bestComboThisLevel + "x<br>Total " + score;
-  summary.style.display = "grid";
-  setTimeout(()=>summary.style.display = "none", 1200);
-
-  level += 1;
-  round = 1;
-  sphereRadius *= 1.18;
-  levelTimeLeft = 60;
-  levelStartScore = score;
-  comboMultiplier = 1;
-  comboTimeLeft = 0;
-  bestComboThisLevel = 1;
-  setTimeout(createRound, 900);
-}
-
-function updateComboOnSource(){
-  if(comboTimeLeft > 0){
-    comboMultiplier = Math.min(5, comboMultiplier + 1);
-  } else {
-    comboMultiplier = 1;
-  }
-  comboTimeLeft = 10;
-  bestComboThisLevel = Math.max(bestComboThisLevel, comboMultiplier);
-}
-
-
 function beaconObject(pos){
   const group = new THREE.Group();
-  const tier = 1 + Math.floor(Math.random()*5);
 
   const core = new THREE.Mesh(
     new THREE.SphereGeometry(2.2, 40, 40),
@@ -1102,32 +933,27 @@ function beaconObject(pos){
     })
   );
 
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(5.2, 5.5, 64),
+    new THREE.MeshBasicMaterial({
+      color:0xff8800,
+      transparent:true,
+      opacity:0.0,
+      side:THREE.DoubleSide,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+
   group.add(aura);
   group.add(core);
-
-  const tierRings = [];
-  for(let i=0;i<tier;i++){
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(5.2 + i*1.35, 5.48 + i*1.35, 72),
-      new THREE.MeshBasicMaterial({
-        color:0xff9900,
-        transparent:true,
-        opacity:0.0,
-        side:THREE.DoubleSide,
-        blending:THREE.AdditiveBlending,
-        depthWrite:false
-      })
-    );
-    group.add(ring);
-    tierRings.push(ring);
-  }
-
+  group.add(ring);
   group.position.copy(pos);
-  group.userData = {core, aura, ring:tierRings[0], tierRings, tier, state:"dormant"};
+  group.userData = {core, aura, ring, state:"dormant"};
   return group;
 }
 
-function createRoundfunction createRound(){
+function createRound(){
   updateWorld();
 
   beacons.forEach(b => scene.remove(b));
@@ -1162,20 +988,11 @@ function createRoundfunction createRound(){
 
   makeInnerParticles();
   createLandmarks();
-  createStardust();
-  if(round === 1 && foundCount === 0){
-    levelStartScore = score;
-    if(levelTimeLeft <= 0) levelTimeLeft = 60;
-  }
   updateHUD();
 }
 
 function updateHUD(signalText="Signal: listening..."){
   document.getElementById("world").textContent = currentWorld().name;
-  document.getElementById("score").textContent = score;
-  document.getElementById("bestScore").textContent = bestScore;
-  document.getElementById("timer").textContent = Math.max(0, Math.ceil(levelTimeLeft));
-  document.getElementById("combo").textContent = comboMultiplier + "x";
   document.getElementById("level").textContent = level;
   document.getElementById("round").textContent = round;
   document.getElementById("found").textContent = foundCount;
@@ -1184,7 +1001,6 @@ function updateHUD(signalText="Signal: listening..."){
 }
 
 updateWorld(true);
-updateHUD();
 createRound();
 
 let dragging = false, lastX=0, lastY=0;
@@ -1267,21 +1083,9 @@ function setNextActive(){
     setTimeout(()=>{
       round += 1;
       if(round > 10){
-        const earned = score - levelStartScore;
-        const summary = document.getElementById("levelSummary");
-        const summaryText = document.getElementById("summaryText");
-        summaryText.innerHTML = "Score +" + earned + "<br>Best Combo " + bestComboThisLevel + "x<br>Total " + score;
-        summary.style.display = "grid";
-        setTimeout(()=>summary.style.display = "none", 1200);
-
         round = 1;
         level += 1;
         sphereRadius *= 1.18;
-        levelTimeLeft = 60;
-        levelStartScore = score;
-        comboMultiplier = 1;
-        comboTimeLeft = 0;
-        bestComboThisLevel = 1;
       }
       createRound();
     }, 900);
@@ -1304,8 +1108,6 @@ function foundSource(){
 
   b.userData.state = "complete";
   foundCount++;
-  updateComboOnSource();
-  addScore((b.userData.tier || 1) * 100, "+SOURCE ");
   discoverySound();
 
   document.getElementById("foundFlash").style.display = "grid";
@@ -1324,18 +1126,6 @@ function animate(){
   const time = performance.now();
 
   updateCamera();
-
-  levelTimeLeft -= dt;
-  if(comboTimeLeft > 0){
-    comboTimeLeft -= dt;
-    if(comboTimeLeft <= 0) comboMultiplier = 1;
-  }
-  if(levelTimeLeft <= 0 && !roundTransitioning && !foundLock){
-    nextLevelByTimer();
-    return;
-  }
-
-  collectStardust();
 
   const f = forwardVector();
   camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 50);
@@ -1458,7 +1248,7 @@ function animate(){
   }
 
   beacons.forEach((b,i)=>{
-    const {core,aura,ring,state,tierRings} = b.userData;
+    const {core,aura,ring,state} = b.userData;
     const pulse = 1 + Math.sin(time*0.006 + i)*0.06;
 
     b.lookAt(camera.position);
@@ -1466,33 +1256,31 @@ function animate(){
     if(state === "active"){
       core.material.color.set(0xff6600);
       aura.material.color.set(0xff6600);
+      ring.material.color.set(0xff9900);
+
       const auraPulse = 1 + Math.sin(time*0.006)*0.28;
       core.scale.setScalar(1 + Math.sin(time*0.010)*0.13);
       aura.scale.setScalar(1.05 + auraPulse + signal*1.45 + lock*0.55);
       aura.material.opacity = 0.14 + signal*0.28 + lock*0.12;
-      tierRings.forEach((r,ri)=>{
-        r.material.color.set(0xff9900);
-        r.scale.setScalar(1.0 + Math.sin(time*0.005 + ri)*0.20 + lock*0.25);
-        r.material.opacity = 0.14 + signal*0.20 + lock*0.12;
-      });
+      ring.scale.setScalar(1.0 + Math.sin(time*0.005)*0.28 + lock*0.32);
+      ring.material.opacity = 0.16 + signal*0.24 + lock*0.16;
     }
     else if(state === "complete"){
       core.material.color.set(0x2494ff);
       aura.material.color.set(0x2494ff);
+      ring.material.color.set(0x2494ff);
+
       core.scale.setScalar(1.0);
       aura.scale.setScalar(1.25 + Math.sin(time*0.003 + i)*0.12);
       aura.material.opacity = 0.12;
-      tierRings.forEach(r=>{
-        r.material.color.set(0x2494ff);
-        r.scale.setScalar(1.0);
-        r.material.opacity = 0.06;
-      });
+      ring.scale.setScalar(1.0);
+      ring.material.opacity = 0.06;
     }
     else {
       core.material.color.set(0x333333);
       core.scale.setScalar(0.85 * pulse);
       aura.material.opacity = 0.0;
-      tierRings.forEach(r=>r.material.opacity = 0.025);
+      ring.material.opacity = 0.0;
     }
   });
 
