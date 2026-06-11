@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SOURCE</title>
+<!-- SOURCE 8.4: Reticle Warp, circular/celestial landmarks, particle rivers -->
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
   font-family:Arial,Helvetica,sans-serif;touch-action:none;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
 }
 canvas{display:block}
 #hud{
@@ -22,20 +24,25 @@ canvas{display:block}
 #signal{opacity:.9}
 #world{color:#ffd36a;text-shadow:0 0 10px rgba(255,211,106,.65)}
 #center{
-  position:absolute;left:50%;top:50%;width:12px;height:12px;border-radius:50%;
+  position:absolute;left:50%;top:50%;width:18px;height:18px;border-radius:50%;
   transform:translate(-50%,-50%);
   background:#39ff14;
   border:2px solid rgba(255,255,255,.95);
   box-shadow:0 0 12px #39ff14,0 0 28px #39ff14,0 0 48px rgba(57,255,20,.75);
-  z-index:9;
+  z-index:13;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
 }
 #center::after{
   content:"";
-  position:absolute;left:50%;top:50%;width:28px;height:28px;border-radius:50%;
+  position:absolute;left:50%;top:50%;width:34px;height:34px;border-radius:50%;
   transform:translate(-50%,-50%);
   border:1px solid rgba(57,255,20,.75);
   box-shadow:0 0 18px rgba(57,255,20,.55);
 }
+#center.warping{box-shadow:0 0 18px #39ff14,0 0 42px #39ff14,0 0 90px rgba(57,255,20,.95);}
 #lockRing{
   position:absolute;left:50%;top:50%;width:64px;height:64px;border-radius:50%;
   transform:translate(-50%,-50%);
@@ -59,21 +66,6 @@ canvas{display:block}
   position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
   opacity:.62;font-size:13px;letter-spacing:.8px;text-align:center;width:90%;
 }
-#jumpBtn{
-  position:absolute;right:18px;bottom:18px;z-index:12;
-  width:78px;height:78px;border-radius:50%;
-  border:1px solid rgba(255,153,0,.55);
-  background:radial-gradient(circle,rgba(255,153,0,.28),rgba(255,153,0,.06) 55%,rgba(0,0,0,.12));
-  color:white;font-size:11px;letter-spacing:1.6px;font-weight:800;
-  box-shadow:0 0 20px rgba(255,153,0,.25);
-  opacity:.72;backdrop-filter:blur(4px);
-  touch-action:none;
-}
-#jumpBtn.ready{
-  opacity:1;
-  border-color:rgba(255,190,70,.95);
-  box-shadow:0 0 22px rgba(255,153,0,.55),0 0 56px rgba(255,153,0,.28);
-}
 </style>
 </head>
 <body>
@@ -89,8 +81,7 @@ canvas{display:block}
 <div id="lockRing"></div>
 <div id="foundFlash">FOUND</div>
 <div id="worldFlash"></div>
-<button id="jumpBtn">PULSE<br>JUMP</button>
-<div id="hint">Drag to look · Pinch / wheel to drift · Lock + tap Pulse Jump · Find the Source</div>
+<div id="hint">Drag to look · Pinch / wheel to drift · Hold green reticle to warp · Find the Source</div>
 
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -116,7 +107,9 @@ let innerParticles;
 let outerCosmos;
 let skyObjects = [];
 let landmarks = [];
-let jumpBoost = 0;
+let particleRivers = [];
+let warpHeld = false;
+let warpBoost = 0;
 let lastLock = 0;
 let currentWorldIndex = -1;
 let yaw = Math.PI;
@@ -511,7 +504,9 @@ function makeOuterCosmos(world){
 
 function clearLandmarks(){
   landmarks.forEach(l => scene.remove(l));
+  particleRivers.forEach(p => scene.remove(p));
   landmarks = [];
+  particleRivers = [];
 }
 
 function addLandmark(obj){
@@ -610,19 +605,111 @@ function createCrystalFormation(pos){
   addLandmark(group);
 }
 
+
+function createOrbitalRingField(pos){
+  const group = new THREE.Group();
+  const world = currentWorld();
+  const colors = world.colors || [0xffffff,0xffd36a,0x9b6dff];
+  const ringCount = 3 + Math.floor(Math.random()*4);
+
+  for(let i=0;i<ringCount;i++){
+    const radius = 34 + i*16 + Math.random()*10;
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(radius, radius + 1.6 + Math.random()*2.2, 160),
+      new THREE.MeshBasicMaterial({
+        color:colors[Math.floor(Math.random()*colors.length)],
+        transparent:true,
+        opacity:0.055 + Math.random()*0.055,
+        side:THREE.DoubleSide,
+        blending:THREE.AdditiveBlending,
+        depthWrite:false
+      })
+    );
+    ring.rotation.x = Math.PI/2 + (Math.random()*0.5-0.25);
+    ring.rotation.y = Math.random()*Math.PI;
+    ring.rotation.z = Math.random()*Math.PI;
+    group.add(ring);
+  }
+
+  group.position.copy(pos);
+  group.scale.setScalar(0.9 + Math.random()*0.9);
+  group.userData.spin = 0.025 + Math.random()*0.035;
+  addLandmark(group);
+}
+
+function createParticleRiver(pos){
+  const group = new THREE.Group();
+  const world = currentWorld();
+  const palette = (world.colors || [0xffffff,0x9b6dff,0xffd36a]).map(c => new THREE.Color(c));
+  const count = 900 + Math.floor(Math.random()*700);
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const length = sphereRadius * (0.70 + Math.random()*0.55);
+  const width = sphereRadius * (0.10 + Math.random()*0.08);
+
+  for(let i=0;i<count;i++){
+    positions[i*3] = (Math.random()*2-1) * length;
+    positions[i*3+1] = (Math.random()*2-1) * width * (0.35 + Math.random()*0.65);
+    positions[i*3+2] = (Math.random()*2-1) * width * (0.35 + Math.random()*0.65);
+
+    const c = palette[Math.floor(Math.random()*palette.length)].clone();
+    c.multiplyScalar(0.38 + Math.random()*0.72);
+    colors[i*3] = c.r;
+    colors[i*3+1] = c.g;
+    colors[i*3+2] = c.b;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions,3));
+  geo.setAttribute("color", new THREE.BufferAttribute(colors,3));
+
+  const mat = new THREE.PointsMaterial({
+    size:1.2,
+    sizeAttenuation:true,
+    transparent:true,
+    opacity:0.34,
+    vertexColors:true,
+    blending:THREE.AdditiveBlending,
+    depthWrite:false
+  });
+
+  const river = new THREE.Points(geo, mat);
+  group.add(river);
+  group.position.copy(pos);
+  group.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+  group.userData.spin = 0.006 + Math.random()*0.01;
+  scene.add(group);
+  particleRivers.push(group);
+}
+
 function createComet(pos){
   const group = new THREE.Group();
   const core = new THREE.Mesh(
     new THREE.SphereGeometry(4.5, 24, 24),
     new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.75, blending:THREE.AdditiveBlending})
   );
-  const tail = new THREE.Mesh(
-    new THREE.ConeGeometry(9, 58, 24, 1, true),
-    new THREE.MeshBasicMaterial({color:0x8fffff, transparent:true, opacity:0.13, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false})
-  );
-  tail.position.z = 32;
-  tail.rotation.x = Math.PI;
-  group.add(core, tail);
+  group.add(core);
+
+  const count = 160;
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  for(let i=0;i<count;i++){
+    positions[i*3] = (Math.random()*2-1)*5;
+    positions[i*3+1] = (Math.random()*2-1)*5;
+    positions[i*3+2] = 8 + Math.random()*58;
+    const c = new THREE.Color(i%2 ? 0x8fffff : 0xffffff);
+    c.multiplyScalar(0.45 + Math.random()*0.45);
+    colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions,3));
+  geo.setAttribute("color", new THREE.BufferAttribute(colors,3));
+  const mat = new THREE.PointsMaterial({
+    size:1.4, sizeAttenuation:true, transparent:true, opacity:0.36,
+    vertexColors:true, blending:THREE.AdditiveBlending, depthWrite:false
+  });
+  group.add(new THREE.Points(geo, mat));
+
   group.position.copy(pos);
   group.lookAt(0,0,0);
   group.userData.spin = 0.03;
@@ -635,7 +722,7 @@ function createLandmarks(){
   const world = currentWorld();
   const colors = world.colors || [0xffffff,0x9b6dff,0xffd36a];
   const landmarkCount = Math.min(5, 1 + Math.floor(level/3));
-  const types = ["ring","moon","asteroids","crystals","comet"];
+  const types = ["ring","moon","asteroids","orbitalRings","particleRiver","comet"];
 
   for(let i=0;i<landmarkCount;i++){
     const type = types[Math.floor(Math.random()*types.length)];
@@ -644,27 +731,33 @@ function createLandmarks(){
     if(type === "ring") createRingPlanet(pos, color);
     else if(type === "moon") createCraterMoon(pos);
     else if(type === "asteroids") createAsteroidCluster(pos);
-    else if(type === "crystals") createCrystalFormation(pos);
+    else if(type === "orbitalRings") createOrbitalRingField(pos);
+    else if(type === "particleRiver") createParticleRiver(pos);
     else createComet(pos);
   }
 }
 
-function pulseJump(){
-  if(lastLock > 0.42){
-    jumpBoost += 4.2 + lastLock * 5.5;
-    const btn = document.getElementById("jumpBtn");
-    btn.classList.add("ready");
-    setTimeout(()=>btn.classList.remove("ready"), 220);
-  } else {
-    jumpBoost += 1.2;
-  }
+function startReticleWarp(e){
+  e.preventDefault();
+  e.stopPropagation();
+  initAudio();
+  warpHeld = true;
+  document.getElementById("center").classList.add("warping");
 }
 
-document.getElementById("jumpBtn").addEventListener("pointerdown", e=>{
-  e.preventDefault();
-  initAudio();
-  pulseJump();
-});
+function stopReticleWarp(e){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  warpHeld = false;
+  document.getElementById("center").classList.remove("warping");
+}
+
+const centerControl = document.getElementById("center");
+centerControl.addEventListener("pointerdown", startReticleWarp);
+window.addEventListener("pointerup", stopReticleWarp);
+window.addEventListener("pointercancel", stopReticleWarp);
 
 
 function beaconObject(pos){
@@ -761,6 +854,7 @@ let activeTouches = new Map();
 let lastPinch = null;
 
 renderer.domElement.addEventListener("pointerdown", e=>{
+  if(e.target && e.target.id === "center") return;
   initAudio();
   activeTouches.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(activeTouches.size === 1){
@@ -881,18 +975,18 @@ function animate(){
   updateCamera();
 
   const f = forwardVector();
-  camera.position.addScaledVector(f, (moveVelocity + jumpBoost) * dt * 50);
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 50);
   applySoftBoundary();
   moveVelocity *= 0.93;
-  jumpBoost *= 0.88;
+  warpBoost *= 0.90;
 
   if(innerParticles){
-    innerParticles.rotation.y += dt * (0.006 + Math.abs(moveVelocity + jumpBoost)*0.0009);
+    innerParticles.rotation.y += dt * (0.006 + Math.abs(moveVelocity + warpBoost)*0.0009);
     innerParticles.rotation.x += dt * 0.002;
     innerParticles.position.x = Math.sin(time * 0.00012) * 0.9;
     innerParticles.position.y = Math.cos(time * 0.0001) * 0.65;
-    innerParticles.material.size = 0.9 + Math.min(2.4, Math.abs(moveVelocity + jumpBoost)*0.08);
-    innerParticles.material.opacity = 0.74 + Math.min(0.18, Math.abs(moveVelocity + jumpBoost)*0.01);
+    innerParticles.material.size = 0.9 + Math.min(2.4, Math.abs(moveVelocity + warpBoost)*0.08);
+    innerParticles.material.opacity = 0.74 + Math.min(0.18, Math.abs(moveVelocity + warpBoost)*0.01);
   }
 
   landmarks.forEach((l,i)=>{
@@ -901,6 +995,16 @@ function animate(){
     if(l.userData.drift){
       l.position.addScaledVector(l.userData.drift, dt);
       if(l.position.length() > sphereRadius*0.82) l.userData.drift.multiplyScalar(-1);
+    }
+  });
+
+  particleRivers.forEach((p,i)=>{
+    p.rotation.y += dt * (p.userData.spin || 0.006);
+    p.rotation.z += dt * 0.003;
+    const pts = p.children[0];
+    if(pts && pts.material){
+      pts.material.size = 1.2 + Math.min(2.6, Math.abs(moveVelocity + warpBoost)*0.08);
+      pts.material.opacity = 0.30 + Math.min(0.22, Math.abs(moveVelocity + warpBoost)*0.012);
     }
   });
 
@@ -927,18 +1031,20 @@ function animate(){
     signal = THREE.MathUtils.clamp(closeness*0.58 + alignment*0.42, 0, 1);
     lock = THREE.MathUtils.smoothstep(alignmentRaw, 0.86, 0.985) * THREE.MathUtils.smoothstep(closeness, 0.18, 0.72);
     lastLock = lock;
-    const jumpBtn = document.getElementById("jumpBtn");
-    if(lock > 0.42) jumpBtn.classList.add("ready"); else jumpBtn.classList.remove("ready");
+    if(warpHeld){
+      const warpPower = 0.85 + signal * 3.2 + lock * 5.2;
+      warpBoost = Math.min(18, warpBoost + warpPower * dt * 7);
+    }
 
     if(audioCtx && humGain){
       const wi = currentWorldIndex;
-      baseGain.gain.value = 0.062 + Math.sin(time*0.0007)*0.012;
+      baseGain.gain.value = 0.062 + Math.sin(time*0.0007)*0.012 + (warpHeld ? 0.045 : 0);
       baseOsc.frequency.value = 30 + wi*1.8 + Math.sin(time*0.00045)*2.5;
 
-      shimmerGain.gain.value = 0.012 + lock * 0.026;
+      shimmerGain.gain.value = 0.012 + lock * 0.026 + (warpHeld ? 0.025 : 0);
       shimmerOsc.frequency.value = 128 + lock * 96 + wi*8 + Math.sin(time*0.001)*7;
 
-      humGain.gain.value = 0.010 + signal * 0.085 + lock * 0.035;
+      humGain.gain.value = 0.010 + signal * 0.085 + lock * 0.035 + (warpHeld ? 0.028 : 0);
       humOsc.frequency.value = 48 + signal * 58 + lock * 45;
 
       beatTimer -= dt;
