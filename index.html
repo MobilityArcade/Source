@@ -123,6 +123,7 @@ let outerParticleRivers = [];
 let meteors = [];
 let nextMeteorTime = 3 + Math.random()*5;
 let warpHeld = false;
+let reverseWarpHeld = false;
 let warpBoost = 0;
 let lastLock = 0;
 let currentWorldIndex = -1;
@@ -895,11 +896,25 @@ function createLandmarks(){
 function startWarpHold(){
   initAudio();
   warpHeld = true;
-  document.getElementById("center").classList.add("warping");
+  reverseWarpHeld = false;
+  const c=document.getElementById("center");
+  c.classList.add("warping");
+  c.style.background="#39ff14";
+}
+function startReverseWarp(){
+  initAudio();
+  reverseWarpHeld = true;
+  warpHeld = false;
+  const c=document.getElementById("center");
+  c.classList.add("warping");
+  c.style.background="#6dd6ff";
 }
 function stopWarpHold(){
   warpHeld = false;
-  document.getElementById("center").classList.remove("warping");
+  reverseWarpHeld = false;
+  const c=document.getElementById("center");
+  c.classList.remove("warping");
+  c.style.background="#39ff14";
 }
 let holdTimer = null;
 let holdStartX = 0;
@@ -1044,6 +1059,7 @@ renderer.domElement.addEventListener("pointermove", e=>{
   }
 
   if(activeTouches.size === 2){
+    if(!reverseWarpHeld) startReverseWarp();
     const pts = [...activeTouches.values()];
     const d = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
     if(lastPinch !== null){
@@ -1057,7 +1073,10 @@ renderer.domElement.addEventListener("pointermove", e=>{
 function endPointer(e){
   activeTouches.delete(e.pointerId);
   dragging = false;
-  if(activeTouches.size < 2) lastPinch = null;
+  if(activeTouches.size < 2){
+    lastPinch = null;
+    if(reverseWarpHeld) stopWarpHold();
+  }
 }
 renderer.domElement.addEventListener("pointerup", endPointer);
 renderer.domElement.addEventListener("pointercancel", endPointer);
@@ -1186,7 +1205,7 @@ function animate(){
     innerParticles.rotation.x += dt * 0.002;
     innerParticles.position.x = Math.sin(time * 0.00012) * 0.9;
     innerParticles.position.y = Math.cos(time * 0.0001) * 0.65;
-    innerParticles.material.size = 0.9 + Math.min(2.4, Math.abs(moveVelocity + warpBoost)*0.08);
+    innerParticles.material.size = 0.9 + Math.min(8.0, Math.abs(moveVelocity + warpBoost)*0.25);
     innerParticles.material.opacity = 0.74 + Math.min(0.18, Math.abs(moveVelocity + warpBoost)*0.01);
   }
 
@@ -1204,7 +1223,7 @@ function animate(){
     p.rotation.z += dt * 0.003;
     const pts = p.children[0];
     if(pts && pts.material){
-      pts.material.size = 1.2 + Math.min(2.6, Math.abs(moveVelocity + warpBoost)*0.08);
+      pts.material.size = 1.2 + Math.min(8.0, Math.abs(moveVelocity + warpBoost)*0.20);
       pts.material.opacity = 0.30 + Math.min(0.22, Math.abs(moveVelocity + warpBoost)*0.012);
     }
   });
@@ -1257,9 +1276,14 @@ function animate(){
     signal = THREE.MathUtils.clamp(closeness*0.58 + alignment*0.42, 0, 1);
     lock = THREE.MathUtils.smoothstep(alignmentRaw, 0.86, 0.985) * THREE.MathUtils.smoothstep(closeness, 0.18, 0.72);
     lastLock = lock;
+    const warpPower = 0.85 + signal * 3.2 + lock * 5.2;
+
     if(warpHeld){
-      const warpPower = 0.85 + signal * 3.2 + lock * 5.2;
       warpBoost = Math.min(18, warpBoost + warpPower * dt * 7);
+    }
+
+    if(reverseWarpHeld){
+      warpBoost = Math.max(-18, warpBoost - warpPower * dt * 7);
     }
 
     if(audioCtx && humGain){
