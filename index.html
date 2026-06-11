@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SOURCE</title>
-<!-- SOURCE 8.7 build from stable upload -->
-<!-- SOURCE 8.6: Outer density, hold-anywhere warp, ring variation, shooting stars -->
+<!-- SOURCE 8.8 ROUND TIMER FIX -->
+<!-- SOURCE 8.8: Round timer, stable score/combo baseline -->
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
@@ -111,7 +111,8 @@ let foundCount = 0;
 let score = 0;
 let bestScore = Number(localStorage.getItem('sourceBestScore')||0);
 let combo = 1;
-let levelTimer = 60;
+let roundTimer = 60;
+let lastSourceFoundAt = 0;
 let innerParticles;
 let outerCosmos;
 let skyObjects = [];
@@ -969,6 +970,7 @@ function createRound(){
   foundCount = 0;
   foundLock = false;
   roundTransitioning = false;
+  roundTimer = 60;
 
   const count = round;
   const minSpacing = Math.max(14, sphereRadius * 0.12);
@@ -1009,7 +1011,7 @@ function updateHUD(signalText="Signal: listening..."){
   const s=document.getElementById("score"); if(s) s.textContent=score;
   const b=document.getElementById("bestScore"); if(b) b.textContent=bestScore;
   const c=document.getElementById("combo"); if(c) c.textContent=combo+"x";
-  const t=document.getElementById("timer"); if(t) t.textContent=Math.max(0,Math.ceil(levelTimer));
+  const t=document.getElementById("timer"); if(t) t.textContent=Math.max(0,Math.ceil(roundTimer));
 }
 
 updateWorld(true);
@@ -1120,6 +1122,14 @@ function foundSource(){
 
   b.userData.state = "complete";
   foundCount++;
+  const nowFound = performance.now();
+  combo = (nowFound - lastSourceFoundAt < 10000) ? Math.min(combo + 1, 5) : 1;
+  lastSourceFoundAt = nowFound;
+  score += 100 * combo;
+  if(score > bestScore){
+    bestScore = score;
+    localStorage.setItem('sourceBestScore', String(bestScore));
+  }
   discoverySound();
 
   document.getElementById("foundFlash").style.display = "grid";
@@ -1132,10 +1142,35 @@ function foundSource(){
   }, 560);
 }
 
+
+function advanceRoundFromTimer(){
+  if(roundTransitioning || foundLock) return;
+  roundTransitioning = true;
+  combo = 1;
+  roundTimer = 60;
+
+  setTimeout(()=>{
+    round += 1;
+    if(round > 10){
+      round = 1;
+      level += 1;
+      sphereRadius *= 1.18;
+    }
+    createRound();
+  }, 250);
+}
+
 function animate(){
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
   const time = performance.now();
+
+  roundTimer -= dt;
+  if(roundTimer <= 0){
+    advanceRoundFromTimer();
+    return;
+  }
+
 
   updateCamera();
 
