@@ -112,7 +112,6 @@ let score = 0;
 let bestScore = Number(localStorage.getItem('sourceBestScore')||0);
 let combo = 1;
 let levelTimer = 60;
-let lastFoundTime = 0;
 let innerParticles;
 let outerCosmos;
 let skyObjects = [];
@@ -1121,14 +1120,6 @@ function foundSource(){
 
   b.userData.state = "complete";
   foundCount++;
-  const now=Date.now();
-  combo = (now-lastFoundTime < 10000) ? Math.min(combo+1,5) : 1;
-  lastFoundTime = now;
-  score += 100 * combo;
-  if(score>bestScore){
-    bestScore=score;
-    localStorage.setItem('sourceBestScore', bestScore);
-  }
   discoverySound();
 
   document.getElementById("foundFlash").style.display = "grid";
