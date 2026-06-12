@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SOURCE</title>
 <!-- SOURCE 8.8 ROUND TIMER FIX -->
-<!-- SOURCE 10.4: Stabilization + Fixed World Size -->
+<!-- SOURCE 10.5: Audio Identity -->
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
@@ -115,6 +115,7 @@ canvas{display:block}
   <div>Best: <span id="bestScore">0</span></div>
   <div>Combo: <span id="combo">1x</span></div>
   <div>Time: <span id="timer">60</span></div>
+  <div>Music: <span id="musicVol">35%</span></div>
 </div>
 <div id="center"></div>
 <div id="lockRing"></div>
@@ -248,6 +249,45 @@ function heartbeat(intensity){
   beatGain.gain.setValueAtTime(0.0001, now);
   beatGain.gain.exponentialRampToValueAtTime(0.08 + intensity * 0.24, now + 0.025);
   beatGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
+}
+
+
+let musicVolume = 0.35;
+let themeTimer = 0;
+const sourceNotes = [261.63,293.66,329.63,392.00,440.00];
+
+function playTone(freq,dur=0.25,vol=0.05,type="triangle"){
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.value = 0.0001;
+  osc.connect(gain).connect(audioCtx.destination);
+  const now = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.linearRampToValueAtTime(vol*musicVolume, now+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now+dur);
+  osc.start(now);
+  osc.stop(now+dur+0.05);
+}
+
+function playSourceTheme(){
+  if(!audioCtx) return;
+  const notes=[261.63,392.0,440.0,392.0,587.33,523.25];
+  notes.forEach((n,i)=>{
+    setTimeout(()=>playTone(n,0.45,0.04,"triangle"), i*320);
+  });
+}
+
+function playCollectionChime(tier){
+  playTone(sourceNotes[Math.max(0,Math.min(4,tier-1))],0.35,0.06,"sine");
+}
+
+function playVictoryFanfare(){
+  [392,440,523,659].forEach((n,i)=>{
+    setTimeout(()=>playTone(n,0.4,0.07,"triangle"), i*180);
+  });
 }
 
 function discoverySound(){
@@ -1571,6 +1611,7 @@ function setNextActive(){
   const remaining = beacons.filter(b => b.userData.state !== "collected");
   if(remaining.length === 0){
     roundTransitioning = true;
+    playVictoryFanfare();
     showRoundComplete("ROUND COMPLETE");
   }
 }
@@ -1599,6 +1640,7 @@ function foundSource(){
   lastSourceFoundAt = nowFound;
   addScore(b.userData.value || 100, "+" + sourceTierLabel(b.userData.tier || 1) + " ");
   discoverySound();
+  playCollectionChime(b.userData.tier || 1);
 
   document.getElementById("foundFlash").style.display = "grid";
   setTimeout(()=>document.getElementById("foundFlash").style.display = "none", 460);
@@ -1616,6 +1658,7 @@ function advanceRoundFromTimer(){
   roundTransitioning = true;
   combo = 1;
   roundTimer = 0;
+  playVictoryFanfare();
   showRoundComplete("TIME COMPLETE");
 }
 
@@ -1624,6 +1667,13 @@ function animate(){
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
   const time = performance.now();
+  if(audioCtx){
+    themeTimer += dt;
+    if(themeTimer > 28){
+      themeTimer = 0;
+      playSourceTheme();
+    }
+  }
 
   if(roundPaused){
     updateCamera();
