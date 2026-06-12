@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SOURCE</title>
 <!-- SOURCE 8.8 ROUND TIMER FIX -->
-<!-- SOURCE 10.3: Living Cosmos + Warp Fix + Results Card -->
+<!-- SOURCE 10.4: Stabilization + Fixed World Size -->
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
@@ -1367,7 +1367,9 @@ function continueToNextRound(){
   if(round > 10){
     round = 1;
     level += 1;
-    sphereRadius *= 1.18;
+
+    // SOURCE 10.4: fixed play-space size
+    sphereRadius = 130;
   }
   createRound();
 }
@@ -1641,6 +1643,8 @@ function animate(){
   const f = forwardVector();
   camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 50);
   applySoftBoundary();
+  warpBoost = THREE.MathUtils.clamp(warpBoost, -12, 12);
+  moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
   moveVelocity *= 0.93;
   if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.90;
 
