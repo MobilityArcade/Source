@@ -1290,47 +1290,22 @@ function createLandmarks(){
   clearLandmarks();
 
   const landmarkTypes = [
-    () => createRingPlanet(
-      randomPointInSphere(sphereRadius * 0.55),
+    () => createRingPlanet(randomPointInSphere(sphereRadius * 0.55),
       currentWorld().colors[
         Math.floor(Math.random()*currentWorld().colors.length)
       ]
     ),
 
-    () => createBinaryPlanet(
-      randomPointInSphere(sphereRadius * 0.55)
-    ),
-
-    () => createDistantSun(
-      randomPointInSphere(sphereRadius * 0.55)
-    ),
-
-    () => createNebulaCloud(
-      randomPointInSphere(sphereRadius * 0.55)
-    ),
-
-    () => createAsteroidCluster(
-      randomPointInSphere(sphereRadius * 0.55)
-    ),
-
-    () => createComet(
-      randomPointInSphere(sphereRadius * 0.55)
-    )
+    () => createBinaryPlanet(randomPointInSphere(sphereRadius * 0.55)),
+    () => createDistantSun(randomPointInSphere(sphereRadius * 0.55)),
+    () => createNebulaCloud(randomPointInSphere(sphereRadius * 0.55)),
+    () => createAsteroidCluster(randomPointInSphere(sphereRadius * 0.55)),
+    () => createComet(randomPointInSphere(sphereRadius * 0.55))
   ];
 
   landmarkTypes[
     Math.floor(Math.random()*landmarkTypes.length)
   ]();
-}
-
-  landmarkTypes.sort(() => Math.random() - 0.5);
-
-  landmarkTypes[0]();
-  landmarkTypes[1]();
-
-  if(Math.random() < 0.25){
-    landmarkTypes[2]();
-  }
 }
 function startWarpHold(){
   if(reverseWarpLock || reverseWarpHeld) return;
