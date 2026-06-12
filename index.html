@@ -1218,6 +1218,7 @@ function createLandmarks(){
 }
 
 function startWarpHold(){
+  if(reverseWarpLock || reverseWarpHeld) return;
   initAudio();
   if(reverseWarpHeld) resetWarpMomentum();
   reverseWarpHeld = false;
@@ -1230,6 +1231,8 @@ function startWarpHold(){
   c.style.background="#39ff14";
 }
 function startReverseWarp(){
+  clearTimeout(holdTimer);
+  reverseWarpLock = true;
   initAudio();
   if(warpHeld) resetWarpMomentum();
   warpHeld = false;
@@ -1245,6 +1248,7 @@ function startReverseWarp(){
   c.style.background="#6dd6ff";
 }
 function stopWarpHold(){
+  reverseWarpLock = false;
   warpHeld = false;
   reverseWarpHeld = false;
   warpSteeringActive = false;
@@ -1254,6 +1258,7 @@ function stopWarpHold(){
   c.classList.remove("warping");
   c.style.background="#39ff14";
 }
+let reverseWarpLock = false;
 let holdTimer = null;
 let holdStartX = 0;
 let holdStartY = 0;
@@ -1505,6 +1510,8 @@ renderer.domElement.addEventListener("pointermove", e=>{
   }
 
   if(activeTouches.size === 2){
+    clearTimeout(holdTimer);
+    reverseWarpLock = true;
     if(!reverseWarpHeld) startReverseWarp();
     const pts = [...activeTouches.values()];
     const d = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
