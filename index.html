@@ -1501,6 +1501,9 @@ function createRound(){
   roundStartScore = score;
   roundSourcesFound = 0;
 
+  themeTimer = 14;
+  playSourceTheme();
+
   const count = Math.min(40, 15 + round * 3);
   const minSpacing = Math.max(14, sphereRadius * 0.12);
 
@@ -1690,7 +1693,7 @@ function animate(){
   const time = performance.now();
   if(audioCtx){
     themeTimer += dt;
-    if(themeTimer > 28){
+    if(themeTimer > 22){
       themeTimer = 0;
       playSourceTheme();
     }
