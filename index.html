@@ -1208,7 +1208,7 @@ function createDistantSun(pos){
 
 function resetWarpMomentum(){
   warpBoost = 0;
-  moveVelocity *= 0.15;
+  moveVelocity *= 0.35;
 }
 
 function createLandmarks(){
@@ -1248,8 +1248,8 @@ function stopWarpHold(){
   warpHeld = false;
   reverseWarpHeld = false;
   warpSteeringActive = false;
-  warpBoost *= 0.25;
-  moveVelocity *= 0.35;
+  warpBoost *= 0.60;
+  moveVelocity *= 0.75;
   const c=document.getElementById("center");
   c.classList.remove("warping");
   c.style.background="#39ff14";
@@ -1737,11 +1737,10 @@ function animate(){
     const warpPower = 0.85 + signal * 3.2 + lock * 5.2;
 
     if(warpHeld){
-      warpBoost = THREE.MathUtils.lerp(warpBoost, 12 + warpPower * 2.2, 0.18);
-    } else if(reverseWarpHeld){
-      warpBoost = THREE.MathUtils.lerp(warpBoost, -(10 + warpPower * 1.8), 0.18);
-    } else {
-      warpBoost = THREE.MathUtils.lerp(warpBoost, 0, 0.12);
+      warpBoost = Math.min(18, warpBoost + warpPower * dt * 7);
+    }
+    if(reverseWarpHeld){
+      warpBoost = Math.max(-18, warpBoost - warpPower * dt * 7);
     }
 
     if(audioCtx && humGain){
@@ -1841,4 +1840,4 @@ window.addEventListener("resize",()=>{
 });
 </script>
 </body>
-</html>
+</html>>
