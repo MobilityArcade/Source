@@ -292,29 +292,23 @@ function playTone(freq,dur=0.25,vol=0.05,type="triangle"){
 function playSourceTheme(){
   if(!audioCtx) return;
 
-  // SOURCE 10.6 Adventure Theme
-  const melody = [
-    [261.63,.45],[392.00,.40],[440.00,.40],[392.00,.55],
-    [587.33,.45],[523.25,.80],
-
-    [329.63,.40],[392.00,.40],[493.88,.40],[440.00,.50],
-    [392.00,.70],[329.63,.80],
-
-    [261.63,.25],[293.66,.25],[329.63,.25],[392.00,.35],
-    [523.25,.55],[493.88,.35],[392.00,.75],
-
-    [196.00,1.10],
-
-    [392.00,.40],[440.00,.40],[523.25,.50],[659.25,.50],
-    [587.33,.45],[523.25,.90],
-
-    [329.63,.60],[392.00,.60],[261.63,1.20]
+  const events = [
+    {freq:110, dur:2.4, vol:0.025, type:"sine", delay:0},
+    {freq:220, dur:0.35, vol:0.020, type:"sine", delay:3200},
+    {freq:165, dur:1.8, vol:0.018, type:"sine", delay:6200},
+    {freq:330, dur:0.25, vol:0.015, type:"sine", delay:9000},
+    {freq:130, dur:2.8, vol:0.022, type:"sine", delay:12500}
   ];
 
-  let delay = 0;
-  melody.forEach(([note,dur])=>{
-    setTimeout(()=>playTone(note,dur,0.04,"triangle"), delay);
-    delay += dur * 700;
+  events.forEach(e=>{
+    setTimeout(()=>{
+      playTone(
+        e.freq,
+        e.dur,
+        e.vol,
+        e.type
+      );
+    }, e.delay);
   });
 }
 
@@ -1518,7 +1512,7 @@ function createRound(){
   roundStartScore = score;
   roundSourcesFound = 0;
 
-  themeTimer = 14;
+  themeTimer = 0;
   playSourceTheme();
 
   const count = Math.min(40, 15 + round * 3);
