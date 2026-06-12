@@ -204,7 +204,7 @@ function initAudio(){
   baseGain = audioCtx.createGain();
   baseOsc.type = "sine";
   baseOsc.frequency.value = 34;
-  baseGain.gain.value = 0.07;
+  baseGain.gain.value = 0.08;
   baseOsc.connect(baseGain).connect(audioCtx.destination);
   baseOsc.start();
 
@@ -212,7 +212,7 @@ function initAudio(){
   shimmerGain = audioCtx.createGain();
   shimmerOsc.type = "sine";
   shimmerOsc.frequency.value = 144;
-  shimmerGain.gain.value = 0.013;
+  shimmerGain.gain.value = 0.03;
   shimmerOsc.connect(shimmerGain).connect(audioCtx.destination);
   shimmerOsc.start();
 
@@ -220,7 +220,7 @@ function initAudio(){
   humGain = audioCtx.createGain();
   humOsc.type = "sine";
   humOsc.frequency.value = 52;
-  humGain.gain.value = 0.012;
+  humGain.gain.value = 0.025;
   humOsc.connect(humGain).connect(audioCtx.destination);
   humOsc.start();
 
@@ -1285,8 +1285,37 @@ function resetWarpMomentum(){
 
 function createLandmarks(){
   clearLandmarks();
-  // SOURCE 10.2B keeps gameplay space clean.
-  // Cosmic landmarks now live in the outer sphere/background.
+
+  createRingPlanet(
+    randomPointInSphere(sphereRadius * 0.55),
+    currentWorld().colors[
+      Math.floor(Math.random()*currentWorld().colors.length)
+    ]
+  );
+
+  createBinaryPlanet(
+    randomPointInSphere(sphereRadius * 0.50)
+  );
+
+  createDistantSun(
+    randomPointInSphere(sphereRadius * 0.60)
+  );
+
+  createNebulaCloud(
+    randomPointInSphere(sphereRadius * 0.55)
+  );
+
+  if(Math.random() < 0.5){
+    createAsteroidCluster(
+      randomPointInSphere(sphereRadius * 0.50)
+    );
+  }
+
+  if(Math.random() < 0.4){
+    createComet(
+      randomPointInSphere(sphereRadius * 0.55)
+    );
+  }
 }
 
 function startWarpHold(){
@@ -1455,7 +1484,15 @@ document.getElementById("roundComplete").addEventListener("pointerdown", e=>{
 function beaconObject(pos){
   const group = new THREE.Group();
   const tier = 1 + Math.floor(Math.random()*5);
-  const tierColors = [0xff8800,0xffaa22,0xffd36a,0xff66cc,0xffffff];
+  const tierColors = [
+  0xff8800, // orange
+  0x66ff66, // green
+  0xffffff, // white
+  0xff66cc, // purple
+  0x55ccff, // cyan
+  0xff4444, // red
+  0xffd36a  // gold
+];
   const tierColor = tierColors[tier-1];
 
   const core = new THREE.Mesh(
@@ -1703,14 +1740,35 @@ function animate(){
   const dt = Math.min(clock.getDelta(), 0.05);
   const time = performance.now();
   if(audioCtx){
-    themeTimer += dt;
-    if(themeTimer > 22){
-      themeTimer = 0;
-      playSourceTheme();
-    }
+  themeTimer += dt;
+
+  if(themeTimer > 22){
+    themeTimer = 0;
+    playSourceTheme();
   }
 
-  if(roundPaused){
+  // Cosmic radio pings
+  if(Math.random() < 0.002){
+    playTone(
+      600 + Math.random()*400,
+      0.15,
+      0.012,
+      "sine"
+    );
+  }
+
+  // Tiny signal chirps
+  if(Math.random() < 0.001){
+    playTone(
+      1200 + Math.random()*800,
+      0.08,
+      0.008,
+      "triangle"
+    );
+  }
+}
+
+if(roundPaused){
     updateCamera();
     renderer.render(scene,camera);
     return;
