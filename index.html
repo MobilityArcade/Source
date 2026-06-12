@@ -869,9 +869,9 @@ function makeOuterCosmos(world){
   skyObjects = [];
   outerParticleRivers = [];
 
-  outerCosmos = createSkyPointCloud(world, 15000, 2600, 2.8, 0.94);
-  midCosmos = createSkyPointCloud(world, 8500, 1500, 1.9, 0.48);
-  deepCosmos = createSkyPointCloud(world, 6000, 3900, 3.2, 0.38);
+  outerCosmos = createSkyPointCloud(world, 25000, 2600, 2.8, 0.94);
+  midCosmos = createSkyPointCloud(world, 18000, 1500, 1.9, 0.48);
+  deepCosmos = createSkyPointCloud(world, 12000, 3900, 3.2, 0.38);
   scene.add(outerCosmos);
   scene.add(midCosmos);
   scene.add(deepCosmos);
@@ -1286,38 +1286,44 @@ function resetWarpMomentum(){
 function createLandmarks(){
   clearLandmarks();
 
-  createRingPlanet(
-    randomPointInSphere(sphereRadius * 0.55),
-    currentWorld().colors[
-      Math.floor(Math.random()*currentWorld().colors.length)
-    ]
-  );
+  const landmarkTypes = [
+    () => createRingPlanet(
+      randomPointInSphere(sphereRadius * 0.55),
+      currentWorld().colors[
+        Math.floor(Math.random()*currentWorld().colors.length)
+      ]
+    ),
 
-  createBinaryPlanet(
-    randomPointInSphere(sphereRadius * 0.50)
-  );
-
-  createDistantSun(
-    randomPointInSphere(sphereRadius * 0.60)
-  );
-
-  createNebulaCloud(
-    randomPointInSphere(sphereRadius * 0.55)
-  );
-
-  if(Math.random() < 0.5){
-    createAsteroidCluster(
-      randomPointInSphere(sphereRadius * 0.50)
-    );
-  }
-
-  if(Math.random() < 0.4){
-    createComet(
+    () => createBinaryPlanet(
       randomPointInSphere(sphereRadius * 0.55)
-    );
+    ),
+
+    () => createDistantSun(
+      randomPointInSphere(sphereRadius * 0.55)
+    ),
+
+    () => createNebulaCloud(
+      randomPointInSphere(sphereRadius * 0.55)
+    ),
+
+    () => createAsteroidCluster(
+      randomPointInSphere(sphereRadius * 0.55)
+    ),
+
+    () => createComet(
+      randomPointInSphere(sphereRadius * 0.55)
+    )
+  ];
+
+  landmarkTypes.sort(() => Math.random() - 0.5);
+
+  landmarkTypes[0]();
+  landmarkTypes[1]();
+
+  if(Math.random() < 0.25){
+    landmarkTypes[2]();
   }
 }
-
 function startWarpHold(){
   if(reverseWarpLock || reverseWarpHeld) return;
   initAudio();
