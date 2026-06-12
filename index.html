@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SOURCE</title>
 <!-- SOURCE 8.8 ROUND TIMER FIX -->
-<!-- SOURCE 8.9: Tiered Sources + Stardust -->
+<!-- SOURCE V9: Tiered Sources + Score Popups + Round Complete -->
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
@@ -63,6 +63,24 @@ canvas{display:block}
   background:radial-gradient(circle,rgba(120,90,255,.34),rgba(0,0,0,.10) 40%,rgba(0,0,0,.92));
   font-size:34px;
 }
+.scorePopup{
+  position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);
+  z-index:60;pointer-events:none;font-size:30px;font-weight:900;letter-spacing:2px;
+  color:#ffd36a;text-shadow:0 0 12px rgba(255,211,106,.95),0 0 38px rgba(255,120,0,.6);
+  animation:scoreRise .95s ease-out forwards;
+}
+@keyframes scoreRise{
+  0%{opacity:0;transform:translate(-50%,-20%) scale(.8);}
+  18%{opacity:1;}
+  100%{opacity:0;transform:translate(-50%,-155%) scale(1.08);}
+}
+#roundComplete{
+  position:absolute;inset:0;display:none;place-items:center;text-align:center;z-index:55;
+  pointer-events:none;background:radial-gradient(circle,rgba(255,211,106,.18),rgba(0,0,0,.14) 38%,rgba(0,0,0,.82));
+  font-weight:900;letter-spacing:4px;text-shadow:0 0 12px rgba(255,255,255,.55),0 0 36px rgba(255,211,106,.45);
+}
+#roundComplete .big{font-size:34px;margin-bottom:12px;}
+#roundComplete .small{font-size:15px;line-height:1.8;opacity:.9;}
 #hint{
   position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
   opacity:.62;font-size:13px;letter-spacing:.8px;text-align:center;width:90%;
@@ -86,6 +104,7 @@ canvas{display:block}
 <div id="lockRing"></div>
 <div id="foundFlash">FOUND</div>
 <div id="worldFlash"></div>
+<div id="roundComplete"></div>
 <div id="hint">Drag to look · Pinch / wheel to drift · Hold anywhere to warp · Find the Source</div>
 
 <script type="module">
@@ -114,6 +133,8 @@ let combo = 1;
 let roundTimer = 60;
 let lastSourceFoundAt = 0;
 let stardust = [];
+let roundStartScore = 0;
+let roundSourcesFound = 0;
 let innerParticles;
 let outerCosmos;
 let skyObjects = [];
@@ -939,32 +960,57 @@ window.addEventListener("pointercancel", ()=>{
 }, {passive:false});
 
 
+
+function sourceTierLabel(tier){
+  if(tier >= 5) return "LEGENDARY SOURCE";
+  if(tier === 4) return "EPIC SOURCE";
+  if(tier === 3) return "RARE SOURCE";
+  if(tier === 2) return "BRIGHT SOURCE";
+  return "SOURCE";
+}
+function showScorePopup(text){
+  const el = document.createElement("div");
+  el.className = "scorePopup";
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+}
+function addScore(points, label="+"){
+  const gained = Math.round(points * combo);
+  score += gained;
+  if(score > bestScore){
+    bestScore = score;
+    localStorage.setItem('sourceBestScore', String(bestScore));
+  }
+  showScorePopup(label + gained);
+  updateHUD();
+}
+function showRoundComplete(reason="ROUND COMPLETE"){
+  const panel = document.getElementById("roundComplete");
+  if(!panel) return;
+  const gained = score - roundStartScore;
+  panel.innerHTML = `<div><div class="big">${reason}</div><div class="small">ROUND SCORE: ${gained}<br>SOURCES FOUND: ${roundSourcesFound}/${round}<br>TOTAL SCORE: ${score}</div></div>`;
+  panel.style.display = "grid";
+  setTimeout(()=>{ panel.style.display = "none"; }, 850);
+}
+
 function beaconObject(pos){
   const group = new THREE.Group();
+  const tier = 1 + Math.floor(Math.random()*5);
+  const tierColors = [0xff8800,0xffaa22,0xffd36a,0xff66cc,0xffffff];
+  const tierColor = tierColors[tier-1];
 
   const core = new THREE.Mesh(
-    new THREE.SphereGeometry(2.2, 40, 40),
+    new THREE.SphereGeometry(2.2 + tier*.12, 40, 40),
     new THREE.MeshBasicMaterial({color:0x444444})
   );
 
   const aura = new THREE.Mesh(
-    new THREE.SphereGeometry(6.5, 48, 48),
+    new THREE.SphereGeometry(6.5 + tier*.55, 48, 48),
     new THREE.MeshBasicMaterial({
-      color:0xff6600,
+      color:tierColor,
       transparent:true,
       opacity:0.0,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  const ring = new THREE.Mesh(
-    new THREE.RingGeometry(5.2, 5.5, 64),
-    new THREE.MeshBasicMaterial({
-      color:0xff8800,
-      transparent:true,
-      opacity:0.0,
-      side:THREE.DoubleSide,
       blending:THREE.AdditiveBlending,
       depthWrite:false
     })
@@ -972,9 +1018,26 @@ function beaconObject(pos){
 
   group.add(aura);
   group.add(core);
-  group.add(ring);
+
+  const rings = [];
+  for(let i=0;i<tier;i++){
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(5.2 + i*1.05, 5.5 + i*1.05, 80),
+      new THREE.MeshBasicMaterial({
+        color:tierColor,
+        transparent:true,
+        opacity:0.0,
+        side:THREE.DoubleSide,
+        blending:THREE.AdditiveBlending,
+        depthWrite:false
+      })
+    );
+    group.add(ring);
+    rings.push(ring);
+  }
+
   group.position.copy(pos);
-  group.userData = {core, aura, ring, state:"dormant"};
+  group.userData = {core, aura, ring:rings[0], rings, tier, value:tier*100, tierColor, state:"dormant"};
   return group;
 }
 
@@ -987,6 +1050,8 @@ function createRound(){
   foundLock = false;
   roundTransitioning = false;
   roundTimer = 60;
+  roundStartScore = score;
+  roundSourcesFound = 0;
 
   const count = round;
   const minSpacing = Math.max(14, sphereRadius * 0.12);
@@ -1113,6 +1178,7 @@ function setNextActive(){
 
   if(remaining.length === 0){
     roundTransitioning = true;
+    showRoundComplete("ROUND COMPLETE");
 
     setTimeout(()=>{
       round += 1;
@@ -1122,7 +1188,7 @@ function setNextActive(){
         sphereRadius *= 1.18;
       }
       createRound();
-    }, 900);
+    }, 1000);
     return;
   }
 
@@ -1142,14 +1208,11 @@ function foundSource(){
 
   b.userData.state = "complete";
   foundCount++;
+  roundSourcesFound++;
   const nowFound = performance.now();
   combo = (nowFound - lastSourceFoundAt < 10000) ? Math.min(combo + 1, 5) : 1;
   lastSourceFoundAt = nowFound;
-  score += 100 * combo;
-  if(score > bestScore){
-    bestScore = score;
-    localStorage.setItem('sourceBestScore', String(bestScore));
-  }
+  addScore(b.userData.value || 100, "+" + sourceTierLabel(b.userData.tier || 1) + " ");
   discoverySound();
 
   document.getElementById("foundFlash").style.display = "grid";
@@ -1168,6 +1231,7 @@ function advanceRoundFromTimer(){
   roundTransitioning = true;
   combo = 1;
   roundTimer = 60;
+  showRoundComplete("TIME COMPLETE");
 
   setTimeout(()=>{
     round += 1;
@@ -1177,7 +1241,7 @@ function advanceRoundFromTimer(){
       sphereRadius *= 1.18;
     }
     createRound();
-  }, 250);
+  }, 1000);
 }
 
 function animate(){
@@ -1320,39 +1384,47 @@ function animate(){
   }
 
   beacons.forEach((b,i)=>{
-    const {core,aura,ring,state} = b.userData;
+    const {core,aura,ring,rings,state,tierColor} = b.userData;
     const pulse = 1 + Math.sin(time*0.006 + i)*0.06;
 
     b.lookAt(camera.position);
 
     if(state === "active"){
-      core.material.color.set(0xff6600);
-      aura.material.color.set(0xff6600);
-      ring.material.color.set(0xff9900);
+      const color = tierColor || 0xff6600;
+      core.material.color.set(color);
+      aura.material.color.set(color);
 
       const auraPulse = 1 + Math.sin(time*0.006)*0.28;
       core.scale.setScalar(1 + Math.sin(time*0.010)*0.13);
       aura.scale.setScalar(1.05 + auraPulse + signal*1.45 + lock*0.55);
       aura.material.opacity = 0.14 + signal*0.28 + lock*0.12;
-      ring.scale.setScalar(1.0 + Math.sin(time*0.005)*0.28 + lock*0.32);
-      ring.material.opacity = 0.16 + signal*0.24 + lock*0.16;
+      const rr = rings || [ring];
+      rr.forEach((r,ri)=>{
+        r.material.color.set(color);
+        r.scale.setScalar(1.0 + Math.sin(time*0.005 + ri*.75)*0.24 + lock*0.30);
+        r.material.opacity = 0.14 + signal*0.22 + lock*0.16;
+      });
     }
     else if(state === "complete"){
       core.material.color.set(0x2494ff);
       aura.material.color.set(0x2494ff);
-      ring.material.color.set(0x2494ff);
 
       core.scale.setScalar(1.0);
       aura.scale.setScalar(1.25 + Math.sin(time*0.003 + i)*0.12);
       aura.material.opacity = 0.12;
-      ring.scale.setScalar(1.0);
-      ring.material.opacity = 0.06;
+      const rr = rings || [ring];
+      rr.forEach(r=>{
+        r.material.color.set(0x2494ff);
+        r.scale.setScalar(1.0);
+        r.material.opacity = 0.06;
+      });
     }
     else {
       core.material.color.set(0x333333);
       core.scale.setScalar(0.85 * pulse);
       aura.material.opacity = 0.0;
-      ring.material.opacity = 0.0;
+      const rr = rings || [ring];
+      rr.forEach(r=>r.material.opacity = 0.025);
     }
   });
 
