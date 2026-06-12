@@ -1785,9 +1785,9 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 50);
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 30);
   applySoftBoundary();
-  warpBoost = THREE.MathUtils.clamp(warpBoost, -12, 12);
+  warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
   moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
   moveVelocity *= 0.93;
   if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.90;
@@ -1892,11 +1892,12 @@ if(roundPaused){
     const warpPower = 0.85 + signal * 3.2 + lock * 5.2;
 
     if(warpHeld){
-      warpBoost = Math.min(18, warpBoost + warpPower * dt * 7);
-    }
-    if(reverseWarpHeld){
-      warpBoost = Math.max(-18, warpBoost - warpPower * dt * 7);
-    }
+  warpBoost = Math.min(10, warpBoost + warpPower * dt * 3.5);
+}
+
+if(reverseWarpHeld){
+  warpBoost = Math.max(-6, warpBoost - warpPower * dt * 2.5);
+}
 
     if(audioCtx && humGain){
       const wi = currentWorldIndex;
