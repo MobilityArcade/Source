@@ -226,7 +226,7 @@ function initAudio(){
 
   beatOsc = audioCtx.createOscillator();
   beatGain = audioCtx.createGain();
-  beatOsc.type = "triangle";
+  beatOsc.type = "sine";
   beatOsc.frequency.value = 82;
   beatGain.gain.value = 0.0001;
   beatOsc.connect(beatGain).connect(audioCtx.destination);
@@ -243,12 +243,29 @@ function initAudio(){
 
 function heartbeat(intensity){
   if(!audioCtx || !beatGain) return;
+
   const now = audioCtx.currentTime;
-  beatOsc.frequency.setValueAtTime(72 + intensity * 76, now);
+
+  beatOsc.type = "sine";
+
+  beatOsc.frequency.setValueAtTime(
+    120 + intensity * 60,
+    now
+  );
+
   beatGain.gain.cancelScheduledValues(now);
+
   beatGain.gain.setValueAtTime(0.0001, now);
-  beatGain.gain.exponentialRampToValueAtTime(0.08 + intensity * 0.24, now + 0.025);
-  beatGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
+
+  beatGain.gain.linearRampToValueAtTime(
+    0.025 + intensity * 0.04,
+    now + 0.12
+  );
+
+  beatGain.gain.exponentialRampToValueAtTime(
+    0.0001,
+    now + 0.75
+  );
 }
 
 
