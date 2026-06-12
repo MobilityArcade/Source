@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SOURCE</title>
 <!-- SOURCE 8.8 ROUND TIMER FIX -->
-<!-- SOURCE V9: Tiered Sources + Score Popups + Round Complete -->
+<!-- SOURCE 10.0: Open Discovery + Tap To Continue -->
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
@@ -76,7 +76,7 @@ canvas{display:block}
 }
 #roundComplete{
   position:absolute;inset:0;display:none;place-items:center;text-align:center;z-index:55;
-  pointer-events:none;background:radial-gradient(circle,rgba(255,211,106,.18),rgba(0,0,0,.14) 38%,rgba(0,0,0,.82));
+  pointer-events:auto;background:radial-gradient(circle,rgba(255,211,106,.18),rgba(0,0,0,.14) 38%,rgba(0,0,0,.82));
   font-weight:900;letter-spacing:4px;text-shadow:0 0 12px rgba(255,255,255,.55),0 0 36px rgba(255,211,106,.45);
 }
 #roundComplete .big{font-size:34px;margin-bottom:12px;}
@@ -105,7 +105,7 @@ canvas{display:block}
 <div id="foundFlash">FOUND</div>
 <div id="worldFlash"></div>
 <div id="roundComplete"></div>
-<div id="hint">Drag to look · Pinch / wheel to drift · Hold anywhere to warp · Find the Source</div>
+<div id="hint">Drag to look · Pinch / wheel to drift · Hold to warp · 2-finger hold to reverse · Choose any Source</div>
 
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -153,6 +153,8 @@ let pitch = 0;
 let moveVelocity = 0;
 let foundLock = false;
 let roundTransitioning = false;
+let roundPaused = false;
+let pendingRoundAdvance = false;
 const clock = new THREE.Clock();
 
 const WORLDS = [
@@ -989,10 +991,32 @@ function showRoundComplete(reason="ROUND COMPLETE"){
   const panel = document.getElementById("roundComplete");
   if(!panel) return;
   const gained = score - roundStartScore;
-  panel.innerHTML = `<div><div class="big">${reason}</div><div class="small">ROUND SCORE: ${gained}<br>SOURCES FOUND: ${roundSourcesFound}/${round}<br>TOTAL SCORE: ${score}</div></div>`;
+  panel.innerHTML = `<div><div class="big">${reason}</div><div class="small">ROUND SCORE: ${gained}<br>SOURCES FOUND: ${roundSourcesFound}/${beacons.length}<br>TOTAL SCORE: ${score}<br><br>TAP TO CONTINUE</div></div>`;
   panel.style.display = "grid";
-  setTimeout(()=>{ panel.style.display = "none"; }, 850);
+  roundPaused = true;
+  pendingRoundAdvance = true;
 }
+
+function continueToNextRound(){
+  if(!pendingRoundAdvance) return;
+  pendingRoundAdvance = false;
+  roundPaused = false;
+  const panel = document.getElementById("roundComplete");
+  if(panel) panel.style.display = "none";
+  round += 1;
+  if(round > 10){
+    round = 1;
+    level += 1;
+    sphereRadius *= 1.18;
+  }
+  createRound();
+}
+
+document.getElementById("roundComplete").addEventListener("pointerdown", e=>{
+  e.stopPropagation();
+  continueToNextRound();
+});
+
 
 function beaconObject(pos){
   const group = new THREE.Group();
@@ -1053,7 +1077,7 @@ function createRound(){
   roundStartScore = score;
   roundSourcesFound = 0;
 
-  const count = round;
+  const count = Math.min(10, 4 + round);
   const minSpacing = Math.max(14, sphereRadius * 0.12);
 
   for(let i=0;i<count;i++){
@@ -1068,8 +1092,8 @@ function createRound(){
     beacons.push(b);
   }
 
-  activeIndex = Math.floor(Math.random() * beacons.length);
-  beacons[activeIndex].userData.state = "active";
+  activeIndex = -1;
+  beacons.forEach(b=>b.userData.state = "active");
 
   camera.position.set(0, 0, sphereRadius * 0.55);
   yaw = Math.PI;
@@ -1087,7 +1111,7 @@ function updateHUD(signalText="Signal: listening..."){
   document.getElementById("level").textContent = level;
   document.getElementById("round").textContent = round;
   document.getElementById("found").textContent = foundCount;
-  document.getElementById("total").textContent = round;
+  document.getElementById("total").textContent = beacons.length || round;
   document.getElementById("signal").textContent = signalText;
   const s=document.getElementById("score"); if(s) s.textContent=score;
   const b=document.getElementById("bestScore"); if(b) b.textContent=bestScore;
@@ -1170,45 +1194,31 @@ function applySoftBoundary(){
 
 function setNextActive(){
   if(roundTransitioning) return;
-
-  const remaining = [];
-  beacons.forEach((b,i)=>{
-    if(b.userData.state !== "complete") remaining.push(i);
-  });
-
+  const remaining = beacons.filter(b => b.userData.state !== "complete");
   if(remaining.length === 0){
     roundTransitioning = true;
     showRoundComplete("ROUND COMPLETE");
-
-    setTimeout(()=>{
-      round += 1;
-      if(round > 10){
-        round = 1;
-        level += 1;
-        sphereRadius *= 1.18;
-      }
-      createRound();
-    }, 1000);
-    return;
   }
-
-  activeIndex = remaining[Math.floor(Math.random() * remaining.length)];
-  beacons[activeIndex].userData.state = "active";
 }
 
 function foundSource(){
-  if(foundLock || roundTransitioning) return;
+  if(foundLock || roundTransitioning || roundPaused) return;
+
+  let closest = null;
+  let closestDist = Infinity;
+  beacons.forEach(b=>{
+    if(b.userData.state === "complete") return;
+    const d = camera.position.distanceTo(b.position);
+    if(d < closestDist){ closestDist = d; closest = b; }
+  });
+  if(!closest || closestDist >= 5.4) return;
 
   foundLock = true;
-  const b = beacons[activeIndex];
-  if(!b || b.userData.state === "complete") {
-    foundLock = false;
-    return;
-  }
-
+  const b = closest;
   b.userData.state = "complete";
   foundCount++;
   roundSourcesFound++;
+
   const nowFound = performance.now();
   combo = (nowFound - lastSourceFoundAt < 10000) ? Math.min(combo + 1, 5) : 1;
   lastSourceFoundAt = nowFound;
@@ -1227,27 +1237,24 @@ function foundSource(){
 
 
 function advanceRoundFromTimer(){
-  if(roundTransitioning || foundLock) return;
+  if(roundTransitioning || foundLock || roundPaused) return;
   roundTransitioning = true;
   combo = 1;
-  roundTimer = 60;
+  roundTimer = 0;
   showRoundComplete("TIME COMPLETE");
-
-  setTimeout(()=>{
-    round += 1;
-    if(round > 10){
-      round = 1;
-      level += 1;
-      sphereRadius *= 1.18;
-    }
-    createRound();
-  }, 1000);
 }
+
 
 function animate(){
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
   const time = performance.now();
+
+  if(roundPaused){
+    updateCamera();
+    renderer.render(scene,camera);
+    return;
+  }
 
   roundTimer -= dt;
   if(roundTimer <= 0){
@@ -1326,26 +1333,33 @@ function animate(){
     }
   }
 
-  const active = beacons[activeIndex];
+  let active = null;
   let signal = 0;
   let lock = 0;
 
-  if(active && active.userData.state === "active"){
-    const toBeacon = active.position.clone().sub(camera.position);
+  beacons.forEach(b=>{
+    if(b.userData.state === "complete") return;
+    const toBeacon = b.position.clone().sub(camera.position);
     const dist = toBeacon.length();
     const dir = toBeacon.clone().normalize();
     const alignmentRaw = f.dot(dir);
     const alignment = THREE.MathUtils.clamp((alignmentRaw+1)/2, 0, 1);
     const closeness = THREE.MathUtils.clamp(1 - dist/(sphereRadius*1.05), 0, 1);
-    signal = THREE.MathUtils.clamp(closeness*0.58 + alignment*0.42, 0, 1);
-    lock = THREE.MathUtils.smoothstep(alignmentRaw, 0.86, 0.985) * THREE.MathUtils.smoothstep(closeness, 0.18, 0.72);
+    const candidateSignal = THREE.MathUtils.clamp(closeness*0.58 + alignment*0.42, 0, 1);
+    if(candidateSignal > signal){
+      active = b;
+      signal = candidateSignal;
+      lock = THREE.MathUtils.smoothstep(alignmentRaw, 0.86, 0.985) * THREE.MathUtils.smoothstep(closeness, 0.18, 0.72);
+    }
+  });
+
+  if(active){
     lastLock = lock;
     const warpPower = 0.85 + signal * 3.2 + lock * 5.2;
 
     if(warpHeld){
       warpBoost = Math.min(18, warpBoost + warpPower * dt * 7);
     }
-
     if(reverseWarpHeld){
       warpBoost = Math.max(-18, warpBoost - warpPower * dt * 7);
     }
@@ -1354,10 +1368,8 @@ function animate(){
       const wi = currentWorldIndex;
       baseGain.gain.value = 0.062 + Math.sin(time*0.0007)*0.012 + (warpHeld ? 0.045 : 0);
       baseOsc.frequency.value = 30 + wi*1.8 + Math.sin(time*0.00045)*2.5;
-
       shimmerGain.gain.value = 0.012 + lock * 0.026 + (warpHeld ? 0.025 : 0);
       shimmerOsc.frequency.value = 128 + lock * 96 + wi*8 + Math.sin(time*0.001)*7;
-
       humGain.gain.value = 0.010 + signal * 0.085 + lock * 0.035 + (warpHeld ? 0.028 : 0);
       humOsc.frequency.value = 48 + signal * 58 + lock * 45;
 
@@ -1380,8 +1392,9 @@ function animate(){
                  "Signal: locked";
     updateHUD(text);
 
-    if(dist < 5.4) foundSource();
+    foundSource();
   }
+
 
   beacons.forEach((b,i)=>{
     const {core,aura,ring,rings,state,tierColor} = b.userData;
