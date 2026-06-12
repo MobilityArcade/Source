@@ -1025,12 +1025,12 @@ function beaconObject(pos){
   const tierColor = tierColors[tier-1];
 
   const core = new THREE.Mesh(
-    new THREE.SphereGeometry(2.2 + tier*.12, 40, 40),
+    new THREE.SphereGeometry(1.4 + tier*.08, 32, 32),
     new THREE.MeshBasicMaterial({color:0x444444})
   );
 
   const aura = new THREE.Mesh(
-    new THREE.SphereGeometry(6.5 + tier*.55, 48, 48),
+    new THREE.SphereGeometry(2.8 + tier*.18, 24, 24),
     new THREE.MeshBasicMaterial({
       color:tierColor,
       transparent:true,
@@ -1046,7 +1046,7 @@ function beaconObject(pos){
   const rings = [];
   for(let i=0;i<tier;i++){
     const ring = new THREE.Mesh(
-      new THREE.RingGeometry(5.2 + i*1.05, 5.5 + i*1.05, 80),
+      new THREE.RingGeometry(3.0 + i*0.7, 3.25 + i*0.7, 64),
       new THREE.MeshBasicMaterial({
         color:tierColor,
         transparent:true,
@@ -1061,7 +1061,7 @@ function beaconObject(pos){
   }
 
   group.position.copy(pos);
-  group.userData = {core, aura, ring:rings[0], rings, tier, value:tier*100, tierColor, state:"dormant"};
+  group.userData = {core, aura, ring:rings[0], rings, tier, value:tier*100, tierColor, state:"dormant", fade:1};
   return group;
 }
 
@@ -1077,7 +1077,7 @@ function createRound(){
   roundStartScore = score;
   roundSourcesFound = 0;
 
-  const count = Math.min(10, 4 + round);
+  const count = Math.min(40, 15 + round * 3);
   const minSpacing = Math.max(14, sphereRadius * 0.12);
 
   for(let i=0;i<count;i++){
@@ -1194,7 +1194,7 @@ function applySoftBoundary(){
 
 function setNextActive(){
   if(roundTransitioning) return;
-  const remaining = beacons.filter(b => b.userData.state !== "complete");
+  const remaining = beacons.filter(b => b.userData.state !== "collected");
   if(remaining.length === 0){
     roundTransitioning = true;
     showRoundComplete("ROUND COMPLETE");
@@ -1207,7 +1207,7 @@ function foundSource(){
   let closest = null;
   let closestDist = Infinity;
   beacons.forEach(b=>{
-    if(b.userData.state === "complete") return;
+    if(b.userData.state === "collected") return;
     const d = camera.position.distanceTo(b.position);
     if(d < closestDist){ closestDist = d; closest = b; }
   });
@@ -1215,7 +1215,8 @@ function foundSource(){
 
   foundLock = true;
   const b = closest;
-  b.userData.state = "complete";
+  b.userData.state = "collected";
+  b.userData.fade = 1;
   foundCount++;
   roundSourcesFound++;
 
@@ -1338,7 +1339,7 @@ function animate(){
   let lock = 0;
 
   beacons.forEach(b=>{
-    if(b.userData.state === "complete") return;
+    if(b.userData.state === "collected") return;
     const toBeacon = b.position.clone().sub(camera.position);
     const dist = toBeacon.length();
     const dir = toBeacon.clone().normalize();
@@ -1410,7 +1411,7 @@ function animate(){
       const auraPulse = 1 + Math.sin(time*0.006)*0.28;
       core.scale.setScalar(1 + Math.sin(time*0.010)*0.13);
       aura.scale.setScalar(1.05 + auraPulse + signal*1.45 + lock*0.55);
-      aura.material.opacity = 0.14 + signal*0.28 + lock*0.12;
+      aura.material.opacity = 0.01;
       const rr = rings || [ring];
       rr.forEach((r,ri)=>{
         r.material.color.set(color);
@@ -1418,19 +1419,27 @@ function animate(){
         r.material.opacity = 0.14 + signal*0.22 + lock*0.16;
       });
     }
-    else if(state === "complete"){
-      core.material.color.set(0x2494ff);
-      aura.material.color.set(0x2494ff);
+    else if(state === "collected"){
+      b.userData.fade = Math.max(0, (b.userData.fade ?? 1) - dt * 1.6);
+      const fade = b.userData.fade;
 
-      core.scale.setScalar(1.0);
-      aura.scale.setScalar(1.25 + Math.sin(time*0.003 + i)*0.12);
-      aura.material.opacity = 0.12;
+      core.material.color.set(0x2494ff);
+      core.material.transparent = true;
+      core.material.opacity = fade;
+      core.scale.setScalar(Math.max(0.01, fade));
+
+      aura.material.opacity = 0;
+
       const rr = rings || [ring];
       rr.forEach(r=>{
         r.material.color.set(0x2494ff);
-        r.scale.setScalar(1.0);
-        r.material.opacity = 0.06;
+        r.material.opacity = fade * 0.12;
+        r.scale.setScalar(Math.max(0.01, fade));
       });
+
+      if(fade <= 0.02){
+        scene.remove(b);
+      }
     }
     else {
       core.material.color.set(0x333333);
