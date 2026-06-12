@@ -869,12 +869,9 @@ function makeOuterCosmos(world){
   skyObjects = [];
   outerParticleRivers = [];
 
-  outerCosmos = createSkyPointCloud(world, 50000, 2600, 2.8, 0.94);
-  outerCosmos.material.opacity = 1.0;
-  midCosmos = createSkyPointCloud(world, 30000, 1500, 1.9, 0.48);
-  midCosmos.material.opacity = 0.75;  
-  deepCosmos = createSkyPointCloud(world, 22000, 3900, 3.2, 0.38);
-  deepCosmos.material.opacity = 0.60;
+ outerCosmos = createSkyPointCloud(world, 22000, 2600, 2.8, 0.95);
+midCosmos = createSkyPointCloud(world, 12000, 1500, 1.9, 0.60);
+deepCosmos = createSkyPointCloud(world, 9000, 3900, 3.2, 0.45);
   scene.add(outerCosmos);
   scene.add(midCosmos);
   scene.add(deepCosmos);
