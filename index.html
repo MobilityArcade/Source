@@ -152,6 +152,8 @@ let lastSourceFoundAt = 0;
 let stardust = [];
 let roundStartScore = 0;
 let roundSourcesFound = 0;
+let levelDiscoveryTotal = 0;
+let levelDiscoveryRounds = 0;
 let innerParticles;
 let outerCosmos;
 let midCosmos;
@@ -1439,13 +1441,21 @@ function animateNumber(el, endValue, duration=900){
   requestAnimationFrame(step);
 }
 
-vibrate([60,40,60,40,120]);
+function getDiscoveryTitle(percent){
+  if(percent >= 90) return "SOURCE MASTER";
+  if(percent >= 75) return "SEEKER";
+  if(percent >= 50) return "PATHFINDER";
+  if(percent >= 25) return "NAVIGATOR";
+  return "EXPLORER";
+}
 function showRoundComplete(reason="ROUND COMPLETE"){
   const panel = document.getElementById("roundComplete");
   if(!panel) return;
   const gained = score - roundStartScore;
   const discoveryPercent =
   Math.round((roundSourcesFound / beacons.length) * 100);
+  levelDiscoveryTotal += discoveryPercent;
+  levelDiscoveryRounds++;
 
 let discoveryRating = "EXPLORER";
 
@@ -1494,13 +1504,56 @@ function continueToNextRound(){
   scene.fog.density = baseFogDensity;
   round += 1;
   if(round > 10){
-    round = 1;
-    level += 1;
 
-    // SOURCE 10.4: fixed play-space size
-    sphereRadius = 130;
-  }
-  createRound();
+  const avgDiscovery =
+    Math.round(
+      levelDiscoveryTotal /
+      Math.max(1, levelDiscoveryRounds)
+    );
+
+  const levelTitle =
+    getDiscoveryTitle(avgDiscovery);
+
+  document.getElementById("roundComplete").innerHTML = `
+    <div class="resultsCard">
+      <div class="big">LEVEL COMPLETE</div>
+
+      <div class="small">
+
+        <div class="statLine">
+          <span>AVERAGE DISCOVERY</span>
+          <span>${avgDiscovery}%</span>
+        </div>
+
+        <div class="statLine">
+          <span>RATING</span>
+          <span>${levelTitle}</span>
+        </div>
+
+        <div class="statLine">
+          <span>LEVEL</span>
+          <span>${level}</span>
+        </div>
+
+        <div class="tapContinue">
+          TAP TO ADVANCE
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.getElementById("roundComplete").style.display = "grid";
+
+  levelDiscoveryTotal = 0;
+  levelDiscoveryRounds = 0;
+
+  round = 1;
+  level += 1;
+
+  sphereRadius = 130;
+
+  return;
 }
 
 document.getElementById("roundComplete").addEventListener("pointerdown", e=>{
