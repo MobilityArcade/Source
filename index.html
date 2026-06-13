@@ -355,6 +355,28 @@ function updateCamera(){
   camera.lookAt(camera.position.clone().add(f));
 }
 
+function disposeObject(obj){
+  if(!obj) return;
+
+  obj.traverse(child=>{
+    if(child.geometry){
+      child.geometry.dispose();
+    }
+
+    if(child.material){
+      if(Array.isArray(child.material)){
+        child.material.forEach(m=>{
+          if(m.dispose) m.dispose();
+        });
+      } else {
+        if(child.material.dispose){
+          child.material.dispose();
+        }
+      }
+    }
+  });
+}
+  
 function randomPointInSphere(radius){
   const u = Math.random();
   const v = Math.random();
@@ -393,7 +415,10 @@ function updateWorld(force=false){
 }
 
 function makeInnerParticles(){
-  if(innerParticles) scene.remove(innerParticles);
+  if(innerParticles){
+  disposeObject(innerParticles);
+  scene.remove(innerParticles);
+}
 
   const count = 1700;
   const positions = new Float32Array(count * 3);
@@ -869,17 +894,36 @@ function createOuterLandmarks(world){
 
 
 function makeOuterCosmos(world){
-  if(outerCosmos) scene.remove(outerCosmos);
-  if(midCosmos) scene.remove(midCosmos);
-  if(deepCosmos) scene.remove(deepCosmos);
-  skyObjects.forEach(o => scene.remove(o));
-  outerParticleRivers.forEach(o => scene.remove(o));
+  if(outerCosmos){
+  disposeObject(outerCosmos);
+  scene.remove(outerCosmos);
+}
+
+if(midCosmos){
+  disposeObject(midCosmos);
+  scene.remove(midCosmos);
+}
+
+if(deepCosmos){
+  disposeObject(deepCosmos);
+  scene.remove(deepCosmos);
+}
+
+skyObjects.forEach(o=>{
+  disposeObject(o);
+  scene.remove(o);
+});
+
+outerParticleRivers.forEach(o=>{
+  disposeObject(o);
+  scene.remove(o);
+});
   skyObjects = [];
   outerParticleRivers = [];
 
- outerCosmos = createSkyPointCloud(world, 22000, 2600, 2.8, 0.95);
-midCosmos = createSkyPointCloud(world, 12000, 1500, 1.9, 0.60);
-deepCosmos = createSkyPointCloud(world, 9000, 3900, 3.2, 0.45);
+ outerCosmos = createSkyPointCloud(world, 10000, 2600, 2.8, 0.95);
+midCosmos   = createSkyPointCloud(world,  5000, 1500, 1.9, 0.60);
+deepCosmos  = createSkyPointCloud(world,  3500, 3900, 3.2, 0.45);
   scene.add(outerCosmos);
   scene.add(midCosmos);
   scene.add(deepCosmos);
@@ -926,8 +970,15 @@ deepCosmos = createSkyPointCloud(world, 9000, 3900, 3.2, 0.45);
 
 
 function clearLandmarks(){
-  landmarks.forEach(l => scene.remove(l));
-  particleRivers.forEach(p => scene.remove(p));
+  landmarks.forEach(l=>{
+  disposeObject(l);
+  scene.remove(l);
+});
+
+particleRivers.forEach(p=>{
+  disposeObject(p);
+  scene.remove(p);
+});
   landmarks = [];
   particleRivers = [];
 }
@@ -1646,7 +1697,10 @@ function createRound(){
   updateWorld();
   scene.fog.density = baseFogDensity;
 
-  beacons.forEach(b => scene.remove(b));
+ beacons.forEach(b=>{
+  disposeObject(b);
+  scene.remove(b);
+});
   beacons = [];
   foundCount = 0;
   foundLock = false;
