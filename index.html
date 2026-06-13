@@ -176,6 +176,7 @@ let foundLock = false;
 let roundTransitioning = false;
 let roundPaused = false;
 let pendingRoundAdvance = false;
+let levelCompletePending = false;
 let warpSteeringActive = false;
 let warpSteerLastX = 0;
 let warpSteerLastY = 0;
@@ -1496,69 +1497,89 @@ else if(discoveryPercent >= 25){
 }
 
 function continueToNextRound(){
+  const panel = document.getElementById("roundComplete");
+
+  // If the LEVEL COMPLETE screen is showing, this tap starts the next level.
+  if(levelCompletePending){
+    levelCompletePending = false;
+    pendingRoundAdvance = false;
+    roundPaused = false;
+
+    if(panel) panel.style.display = "none";
+    scene.fog.density = baseFogDensity;
+
+    createRound();
+    return;
+  }
+
   if(!pendingRoundAdvance) return;
+
   pendingRoundAdvance = false;
   roundPaused = false;
-  const panel = document.getElementById("roundComplete");
+
   if(panel) panel.style.display = "none";
   scene.fog.density = baseFogDensity;
+
   round += 1;
+
   if(round > 10){
+    const avgDiscovery =
+      Math.round(
+        levelDiscoveryTotal /
+        Math.max(1, levelDiscoveryRounds)
+      );
 
-  const avgDiscovery =
-    Math.round(
-      levelDiscoveryTotal /
-      Math.max(1, levelDiscoveryRounds)
-    );
+    const levelTitle =
+      getDiscoveryTitle(avgDiscovery);
 
-  const levelTitle =
-    getDiscoveryTitle(avgDiscovery);
+    if(panel){
+      panel.innerHTML = `
+        <div class="resultsCard">
+          <div class="big">LEVEL COMPLETE</div>
 
-  document.getElementById("roundComplete").innerHTML = `
-    <div class="resultsCard">
-      <div class="big">LEVEL COMPLETE</div>
+          <div class="small">
 
-      <div class="small">
+            <div class="statLine">
+              <span>AVERAGE DISCOVERY</span>
+              <span>${avgDiscovery}%</span>
+            </div>
 
-        <div class="statLine">
-          <span>AVERAGE DISCOVERY</span>
-          <span>${avgDiscovery}%</span>
+            <div class="statLine">
+              <span>RATING</span>
+              <span>${levelTitle}</span>
+            </div>
+
+            <div class="statLine">
+              <span>LEVEL</span>
+              <span>${level}</span>
+            </div>
+
+            <div class="tapContinue">
+              TAP TO ADVANCE
+            </div>
+
+          </div>
         </div>
+      `;
 
-        <div class="statLine">
-          <span>RATING</span>
-          <span>${levelTitle}</span>
-        </div>
+      panel.style.display = "grid";
+    }
 
-        <div class="statLine">
-          <span>LEVEL</span>
-          <span>${level}</span>
-        </div>
+    levelDiscoveryTotal = 0;
+    levelDiscoveryRounds = 0;
 
-        <div class="tapContinue">
-          TAP TO ADVANCE
-        </div>
+    round = 1;
+    level += 1;
+    sphereRadius = 130;
 
-      </div>
-    </div>
-  `;
+    levelCompletePending = true;
+    roundPaused = true;
 
-  document.getElementById("roundComplete").style.display = "grid";
+    return;
+  }
 
-  levelDiscoveryTotal = 0;
-  levelDiscoveryRounds = 0;
-
-  round = 1;
-  level += 1;
-
-  sphereRadius = 130;
-
-return;
+  createRound();
 }
-
-createRound();
-
-}   
 
 document.getElementById("roundComplete").addEventListener("pointerdown", e=>{
   e.stopPropagation();
