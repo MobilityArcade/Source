@@ -1576,6 +1576,7 @@ function createRound(){
   pitch = 0;
   moveVelocity = 0;
   beatTimer = 0;
+  warpBoost = 0;
 
   makeInnerParticles();
   createLandmarks();
@@ -1785,11 +1786,11 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 30);
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 20);
   applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
   moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
-  moveVelocity *= 0.93;
+  moveVelocity *= 0.88;
   if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.90;
 
   if(innerParticles){
@@ -1892,11 +1893,11 @@ if(roundPaused){
     const warpPower = 0.85 + signal * 3.2 + lock * 5.2;
 
     if(warpHeld){
-  warpBoost = Math.min(10, warpBoost + warpPower * dt * 3.5);
+  warpBoost = Math.min(4, warpBoost + warpPower * dt * 1.5);
 }
 
 if(reverseWarpHeld){
-  warpBoost = Math.max(-6, warpBoost - warpPower * dt * 2.5);
+  warpBoost = Math.max(-3, warpBoost - warpPower * dt * 1);
 }
 
     if(audioCtx && humGain){
