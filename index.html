@@ -273,6 +273,11 @@ let musicVolume = 0.35;
 let themeTimer = 0;
 const sourceNotes = [261.63,293.66,329.63,392.00,440.00];
 
+  function vibrate(pattern){
+  if(navigator.vibrate){
+    navigator.vibrate(pattern);
+  }
+}
 function playTone(freq,dur=0.25,vol=0.05,type="triangle"){
   if(!audioCtx) return;
   const osc = audioCtx.createOscillator();
@@ -1325,6 +1330,7 @@ function startWarpHold(){
   if(reverseWarpHeld) resetWarpMomentum();
   reverseWarpHeld = false;
   warpHeld = true;
+  vibrate(20);
   warpSteeringActive = true;
   warpSteerLastX = holdStartX;
   warpSteerLastY = holdStartY;
@@ -1339,6 +1345,7 @@ function startReverseWarp(){
   if(warpHeld) resetWarpMomentum();
   warpHeld = false;
   reverseWarpHeld = true;
+  vibrate([15,30,15]);
   warpSteeringActive = true;
   const pts = [...activeTouches.values()];
   if(pts.length){
@@ -1432,6 +1439,7 @@ function animateNumber(el, endValue, duration=900){
   requestAnimationFrame(step);
 }
 
+vibrate([60,40,60,40,120]);
 function showRoundComplete(reason="ROUND COMPLETE"){
   const panel = document.getElementById("roundComplete");
   if(!panel) return;
@@ -1715,6 +1723,7 @@ function foundSource(){
   addScore(b.userData.value || 100, "+" + sourceTierLabel(b.userData.tier || 1) + " ");
   discoverySound();
   playCollectionChime(b.userData.tier || 1);
+  vibrate([30,40,70]);
 
   document.getElementById("foundFlash").style.display = "grid";
   setTimeout(()=>document.getElementById("foundFlash").style.display = "none", 460);
