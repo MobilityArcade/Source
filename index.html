@@ -1444,6 +1444,23 @@ function showRoundComplete(reason="ROUND COMPLETE"){
   const panel = document.getElementById("roundComplete");
   if(!panel) return;
   const gained = score - roundStartScore;
+  const discoveryPercent =
+  Math.round((roundSourcesFound / beacons.length) * 100);
+
+let discoveryRating = "EXPLORER";
+
+if(discoveryPercent >= 90){
+  discoveryRating = "SOURCE MASTER";
+}
+else if(discoveryPercent >= 75){
+  discoveryRating = "SEEKER";
+}
+else if(discoveryPercent >= 50){
+  discoveryRating = "PATHFINDER";
+}
+else if(discoveryPercent >= 25){
+  discoveryRating = "NAVIGATOR";
+}
 
   scene.fog.density = baseFogDensity * 1.75;
 
@@ -1453,6 +1470,8 @@ function showRoundComplete(reason="ROUND COMPLETE"){
       <div class="small">
         <div class="statLine"><span>ROUND SCORE</span><span id="roundScoreCount">0</span></div>
         <div class="statLine"><span>SOURCES FOUND</span><span>${roundSourcesFound}/${beacons.length}</span></div>
+        <div class="statLine"><span>DISCOVERY</span><span>${discoveryRating}</span></div>
+        <div class="statLine"><span>PERCENT</span><span>${discoveryPercent}%</span></div>
         <div class="statLine"><span>TOTAL SCORE</span><span id="totalScoreCount">0</span></div>
         <div class="tapContinue">TAP TO CONTINUE</div>
       </div>
@@ -1561,7 +1580,7 @@ function createRound(){
   themeTimer = 0;
   playSourceTheme();
 
-  const count = Math.min(40, 15 + round * 3);
+  const count = 20;
   const minSpacing = Math.max(14, sphereRadius * 0.12);
 
   for(let i=0;i<count;i++){
