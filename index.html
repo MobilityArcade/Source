@@ -14,7 +14,7 @@ html,body{
 }
 canvas{display:block}
 #hud{
-  position:absolute;top:55px;left:14px;z-index:10;
+  position:absolute;top:95px;left:14px;z-index:10;
   background:transparent;padding:0;border-radius:0;
   font-size:13px;line-height:1.45;letter-spacing:.4px;
   text-shadow:0 0 8px rgba(255,255,255,.35),0 0 18px rgba(80,180,255,.25);
@@ -24,28 +24,24 @@ canvas{display:block}
 
   #gameTitle{
   position:absolute;
-  top:max(10px, env(safe-area-inset-top));
+  top:12px;
   left:50%;
   transform:translateX(-50%);
 
   z-index:20;
 
-  font-size:clamp(16px, 3vw, 30px);
+  font-size:28px;
   font-weight:900;
-  letter-spacing:2px;
+  letter-spacing:3px;
 
   color:white;
-
-  max-width:70vw;
   text-align:center;
-  line-height:1;
 
   text-shadow:
     0 0 10px rgba(255,255,255,.9),
     0 0 25px rgba(255,255,255,.5);
 
   opacity:.95;
-
   pointer-events:none;
 }
   
@@ -165,6 +161,11 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
+renderer.domElement.style.position = "absolute";
+renderer.domElement.style.top = "0";
+renderer.domElement.style.left = "0";
+renderer.domElement.style.width = "100%";
+renderer.domElement.style.height = "100%";
 
 let level = 1;
 let round = 1;
