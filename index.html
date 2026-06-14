@@ -24,17 +24,21 @@ canvas{display:block}
 
   #gameTitle{
   position:absolute;
-  top:max(18px, env(safe-area-inset-top));
+  top:max(10px, env(safe-area-inset-top));
   left:50%;
   transform:translateX(-50%);
 
   z-index:20;
 
-  font-size:38px;
+  font-size:clamp(16px, 3vw, 30px);
   font-weight:900;
   letter-spacing:2px;
 
   color:white;
+
+  max-width:70vw;
+  text-align:center;
+  line-height:1;
 
   text-shadow:
     0 0 10px rgba(255,255,255,.9),
