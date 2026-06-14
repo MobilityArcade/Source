@@ -184,13 +184,29 @@ let baseFogDensity = scene.fog.density;
 const clock = new THREE.Clock();
 
 const WORLDS = [
-  {name:"Void",       colors:[0x1d2cff,0x5d3dff,0xb24fff,0xff4fa3,0xffffff,0x6dd6ff], fog:0.00100, accent:0x8aa2ff},
-  {name:"Nebula",     colors:[0x9b6dff,0xff4fa3,0xff7bd5,0x6dd6ff,0xffffff,0xffd36a], fog:0.00108, accent:0xb36dff},
-  {name:"Galaxy",     colors:[0xffffff,0xffd36a,0xff8a3d,0x6d8cff,0xb36dff,0x8fffff], fog:0.00092, accent:0xffd36a},
-  {name:"Singularity",colors:[0xff3d6e,0xff6a00,0x7b3cff,0x1d2cff,0xffffff,0x111133], fog:0.00118, accent:0xff3d6e},
-  {name:"Aurora",     colors:[0x5dffb4,0x8fffff,0xb36dff,0xff7bd5,0xffffff,0xffd36a], fog:0.00102, accent:0x5dffb4},
-  {name:"Resonance",  colors:[0x39ff14,0x9b6dff,0xffd36a,0x8fffff,0xffffff,0xff7bd5], fog:0.00097, accent:0x39ff14},
-  {name:"Ascension",  colors:[0xffffff,0xffd36a,0xff7bd5,0x8fffff,0xb36dff,0x5dffb4], fog:0.00087, accent:0xffffff}
+  {name:"Void",        colors:[0x1d2cff,0x5d3dff,0xb24fff,0xff4fa3,0xffffff,0x6dd6ff], fog:0.00100, accent:0x8aa2ff},
+  {name:"Singularity", colors:[0xff3d6e,0xff6a00,0x7b3cff,0x1d2cff,0xffffff,0x111133], fog:0.00118, accent:0xff3d6e},
+  {name:"Nebula",      colors:[0x9b6dff,0xff4fa3,0xff7bd5,0x6dd6ff,0xffffff,0xffd36a], fog:0.00108, accent:0xb36dff},
+  {name:"Aurora",      colors:[0x5dffb4,0x8fffff,0xb36dff,0xff7bd5,0xffffff,0xffd36a], fog:0.00102, accent:0x5dffb4},
+  {name:"Prism",       colors:[0xff66cc,0x66ccff,0xffff66,0xffffff,0x9b6dff,0x39ff14], fog:0.00098, accent:0xff66cc},
+  {name:"Horizon",     colors:[0xffd36a,0xff8844,0xffffff,0x6dd6ff,0x8fffff,0xff7bd5], fog:0.00094, accent:0xffd36a},
+  {name:"Titan",       colors:[0xff8844,0xcc6633,0xffffff,0xffd36a,0x777777,0xaaaaaa], fog:0.00105, accent:0xff8844},
+  {name:"Eclipse",     colors:[0x111111,0x444444,0xffffff,0xffd36a,0x7b3cff,0xff3d6e], fog:0.00120, accent:0xffffff},
+  {name:"Nexus",       colors:[0x39ff14,0x8fffff,0xffffff,0x9b6dff,0xff7bd5,0xffd36a], fog:0.00090, accent:0x39ff14},
+  {name:"Zenith",      colors:[0xffffff,0xffd36a,0x8fffff,0xff7bd5,0xb36dff,0x39ff14], fog:0.00082, accent:0xffffff}
+];
+
+  const CYCLE_NAMES = [
+  "",
+  "Ancient ",
+  "Prime ",
+  "Mythic ",
+  "Legend ",
+  "Eternal ",
+  "Infinite ",
+  "Transcendent ",
+  "Celestial ",
+  "SOURCE "
 ];
 
 let audioCtx, baseOsc, baseGain, shimmerOsc, shimmerGain, humOsc, humGain, beatOsc, beatGain, resonanceOsc, resonanceGain;
@@ -390,28 +406,73 @@ function randomPointInSphere(radius){
   );
 }
 
-function currentWorld(){
-  const index = Math.floor((level - 1)) % WORLDS.length;
-  return WORLDS[index];
-}
+function toRoman(num){
 
-function updateWorld(force=false){
-  const index = Math.floor((level - 1)) % WORLDS.length;
-  if(!force && index === currentWorldIndex) return;
-  currentWorldIndex = index;
-  const world = WORLDS[index];
+  const romans = [
+    ["M",1000],
+    ["CM",900],
+    ["D",500],
+    ["CD",400],
+    ["C",100],
+    ["XC",90],
+    ["L",50],
+    ["XL",40],
+    ["X",10],
+    ["IX",9],
+    ["V",5],
+    ["IV",4],
+    ["I",1]
+  ];
 
-  scene.fog.density = world.fog;
-  baseFogDensity = world.fog;
-  document.getElementById("world").textContent = world.name;
-  makeOuterCosmos(world);
+  let result = "";
 
-  if(level > 1 || force){
-    const wf = document.getElementById("worldFlash");
-    wf.innerHTML = world.name.toUpperCase();
-    wf.style.display = "grid";
-    setTimeout(()=>wf.style.display = "none", 1200);
+  for(const [symbol,value] of romans){
+    while(num >= value){
+      result += symbol;
+      num -= value;
+    }
   }
+
+  return result;
+}
+  
+function currentWorld(){
+
+  const worldIndex =
+    (level - 1) % WORLDS.length;
+
+  const cycle =
+    Math.floor(
+      (level - 1) / WORLDS.length
+    );
+
+  const world = {
+    ...WORLDS[worldIndex]
+  };
+
+  if(cycle < 10){
+
+    const prefix =
+      CYCLE_NAMES[
+        Math.min(
+          cycle,
+          CYCLE_NAMES.length - 1
+        )
+      ];
+
+    world.name =
+      prefix + world.name;
+
+  } else {
+
+    world.name =
+      world.name +
+      " " +
+      toRoman(cycle + 1);
+
+  }
+
+  return world;
 }
 
 function makeInnerParticles(){
@@ -1493,6 +1554,21 @@ function animateNumber(el, endValue, duration=900){
   requestAnimationFrame(step);
 }
 
+function getSourceRank(cycle){
+
+  if(cycle >= 10) return "SOURCE";
+  if(cycle >= 9) return "COSMIC ARCHITECT";
+  if(cycle >= 8) return "VOID WALKER";
+  if(cycle >= 7) return "SOURCE MASTER";
+  if(cycle >= 6) return "SOURCE SEEKER";
+  if(cycle >= 5) return "SIGNAL HUNTER";
+  if(cycle >= 4) return "CARTOGRAPHER";
+  if(cycle >= 3) return "NAVIGATOR";
+  if(cycle >= 2) return "PATHFINDER";
+
+  return "EXPLORER";
+}
+  
 function getDiscoveryTitle(percent){
   if(percent >= 90) return "SOURCE MASTER";
   if(percent >= 75) return "SEEKER";
@@ -1574,14 +1650,26 @@ function continueToNextRound(){
   round += 1;
 
   if(round > 10){
-    const avgDiscovery =
-      Math.round(
-        levelDiscoveryTotal /
-        Math.max(1, levelDiscoveryRounds)
-      );
+   const avgDiscovery =
+  Math.round(
+    levelDiscoveryTotal /
+    Math.max(1, levelDiscoveryRounds)
+  );
+
+const cycle =
+  Math.floor((level - 1) / 10) + 1;
+
+const sourceRank =
+  getSourceRank(cycle);
 
     const levelTitle =
-      getDiscoveryTitle(avgDiscovery);
+getDiscoveryTitle(avgDiscovery);
+
+const cycle =
+Math.floor((level - 1) / 10) + 1;
+
+const sourceRank =
+getSourceRank(cycle);
 
     if(panel){
       panel.innerHTML = `
@@ -1603,6 +1691,16 @@ function continueToNextRound(){
             <div class="statLine">
               <span>LEVEL</span>
               <span>${level}</span>
+            </div>
+
+            <div class="statLine">
+              <span>CYCLE</span>
+              <span>${cycle}</span>
+            </div>
+
+            <div class="statLine">
+              <span>SOURCE RANK</span>
+              <span>${sourceRank}</span>
             </div>
 
             <div class="tapContinue">
