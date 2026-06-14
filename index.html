@@ -450,6 +450,9 @@ function currentWorld(){
     ...WORLDS[worldIndex]
   };
 
+  world.baseName = world.name;
+  world.cycle = cycle + 1;
+
   if(cycle < 10){
 
     const prefix =
@@ -473,6 +476,32 @@ function currentWorld(){
   }
 
   return world;
+}
+
+function updateWorld(force=false){
+
+  const worldIndex =
+    (level - 1) % WORLDS.length;
+
+  if(!force && worldIndex === currentWorldIndex) return;
+
+  currentWorldIndex = worldIndex;
+
+  const world = currentWorld();
+
+  scene.fog.density = world.fog;
+  baseFogDensity = world.fog;
+
+  document.getElementById("world").textContent = world.name;
+
+  makeOuterCosmos(world);
+
+  if(level > 1 || force){
+    const wf = document.getElementById("worldFlash");
+    wf.innerHTML = world.name.toUpperCase();
+    wf.style.display = "grid";
+    setTimeout(()=>wf.style.display = "none", 1200);
+  }
 }
 
 function makeInnerParticles(){
@@ -996,37 +1025,62 @@ deepCosmos  = createSkyPointCloud(world,  3500, 3900, 3.2, 0.45);
   createOuterHaloBand(world, new THREE.Vector3(1100, 420, -1550), 0.65 + Math.random()*0.45);
   createOuterLandmarks(world);
 
-  if(world.name === "Void"){
+  const worldBase =
+    world.baseName || world.name;
+
+  if(worldBase.includes("Void")){
     addNebulaCluster(0x1d2cff, new THREE.Vector3(-1050, 360, -2150), 0.95, 18);
     addNebulaCluster(0x7b3cff, new THREE.Vector3(1350, -260, -1750), 0.80, 16);
     addNebulaCluster(0xff4fa3, new THREE.Vector3(-1550, -380, 1300), 0.65, 12);
   }
-  if(world.name === "Nebula"){
+
+  if(worldBase.includes("Singularity")){
+    addSingularity(new THREE.Vector3(900, 220, -2200), 1.15);
+    addNebulaCluster(0xff3d6e, new THREE.Vector3(-1300, -340, -1700), 0.9, 22);
+  }
+
+  if(worldBase.includes("Nebula")){
     addNebulaCluster(0x9b6dff, new THREE.Vector3(-900, 360, -2100), 1.25, 30);
     addNebulaCluster(0xff4fa3, new THREE.Vector3(1250, -360, -1800), 1.05, 26);
     addNebulaCluster(0x6dd6ff, new THREE.Vector3(-1500, -320, 1200), 0.9, 22);
   }
-  if(world.name === "Galaxy"){
-    addGalaxy(0xffd36a, new THREE.Vector3(1250, 120, -2100), 1.1);
-    addNebulaCluster(0x6d8cff, new THREE.Vector3(-1400, -420, 1500), 0.85, 18);
-  }
-  if(world.name === "Singularity"){
-    addSingularity(new THREE.Vector3(900, 220, -2200), 1.15);
-    addNebulaCluster(0xff3d6e, new THREE.Vector3(-1300, -340, -1700), 0.9, 22);
-  }
-  if(world.name === "Aurora"){
+
+  if(worldBase.includes("Aurora")){
     addAurora(new THREE.Vector3(-200, 450, -2300), [0x5dffb4,0x8fffff,0xb36dff]);
     addNebulaCluster(0x5dffb4, new THREE.Vector3(1450, -280, 1500), 0.75, 16);
   }
-  if(world.name === "Resonance"){
-    addResonanceGeometry(new THREE.Vector3(1050, 300, -2200));
-    addNebulaCluster(0x9b6dff, new THREE.Vector3(-1300, -360, 1500), 0.85, 18);
+
+  if(worldBase.includes("Prism")){
+    addGalaxy(0xff66cc, new THREE.Vector3(1250, 120, -2100), 1.05);
+    addNebulaCluster(0x66ccff, new THREE.Vector3(-1400, -420, 1500), 0.85, 18);
   }
-  if(world.name === "Ascension"){
+
+  if(worldBase.includes("Horizon")){
+    addNebulaCluster(0xffd36a, new THREE.Vector3(-900, 260, -2150), 0.95, 18);
+    addAurora(new THREE.Vector3(700, -120, 2100), [0xffd36a,0xff8844,0x6dd6ff]);
+  }
+
+  if(worldBase.includes("Titan")){
+    addNebulaCluster(0xff8844, new THREE.Vector3(1150, 260, -2100), 0.85, 18);
+    addGalaxy(0xcc6633, new THREE.Vector3(-1250, -360, 1450), 0.80);
+  }
+
+  if(worldBase.includes("Eclipse")){
+    addSingularity(new THREE.Vector3(850, 160, -2200), 0.95);
+    addNebulaCluster(0xffffff, new THREE.Vector3(-1300, -340, -1700), 0.70, 14);
+  }
+
+  if(worldBase.includes("Nexus")){
+    addResonanceGeometry(new THREE.Vector3(1050, 300, -2200));
+    addNebulaCluster(0x39ff14, new THREE.Vector3(-1300, -360, 1500), 0.85, 18);
+  }
+
+  if(worldBase.includes("Zenith")){
     addGalaxy(0xffffff, new THREE.Vector3(900, 220, -2150), 1.25);
     addAurora(new THREE.Vector3(-850, -120, 2100), [0xffd36a,0xff7bd5,0x8fffff]);
     addNebulaCluster(0xffffff, new THREE.Vector3(-1400, 400, -1450), 0.9, 18);
   }
+
 }
 
 
@@ -1650,26 +1704,21 @@ function continueToNextRound(){
   round += 1;
 
   if(round > 10){
-   const avgDiscovery =
-  Math.round(
-    levelDiscoveryTotal /
-    Math.max(1, levelDiscoveryRounds)
-  );
 
-const cycle =
-  Math.floor((level - 1) / 10) + 1;
-
-const sourceRank =
-  getSourceRank(cycle);
+    const avgDiscovery =
+      Math.round(
+        levelDiscoveryTotal /
+        Math.max(1, levelDiscoveryRounds)
+      );
 
     const levelTitle =
-getDiscoveryTitle(avgDiscovery);
+      getDiscoveryTitle(avgDiscovery);
 
-const cycle =
-Math.floor((level - 1) / 10) + 1;
+    const cycle =
+      Math.floor((level - 1) / 10) + 1;
 
-const sourceRank =
-getSourceRank(cycle);
+    const sourceRank =
+      getSourceRank(cycle);
 
     if(panel){
       panel.innerHTML = `
