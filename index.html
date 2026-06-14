@@ -21,7 +21,30 @@ canvas{display:block}
   opacity:.86;
   pointer-events:none;
 }
-#title{font-size:18px;font-weight:800;letter-spacing:4px;opacity:.92}
+
+  #gameTitle{
+  position:absolute;
+  top:max(18px, env(safe-area-inset-top));
+  left:50%;
+  transform:translateX(-50%);
+
+  z-index:20;
+
+  font-size:38px;
+  font-weight:900;
+  letter-spacing:2px;
+
+  color:white;
+
+  text-shadow:
+    0 0 10px rgba(255,255,255,.9),
+    0 0 25px rgba(255,255,255,.5);
+
+  opacity:.95;
+
+  pointer-events:none;
+}
+  
 #signal{opacity:.9}
 #world{color:#ffd36a;text-shadow:0 0 10px rgba(255,211,106,.65)}
 #center{
@@ -96,7 +119,7 @@ canvas{display:block}
 #roundComplete .small{font-size:15px;line-height:1.9;opacity:.96;}
 .statLine{display:flex;justify-content:space-between;gap:28px;border-top:1px solid rgba(255,255,255,.10);padding:8px 0;}
 .statLine:first-child{border-top:none;}
-.tapContinue{margin-top:18px;font-size:12px;letter-spacing:4px;opacity:.78;}
+.tapContinue{margin-top:max(18px, env(safe-area-inset-top));18px;font-size:12px;letter-spacing:4px;opacity:.78;}
 #hint{
   position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
   opacity:.62;font-size:13px;letter-spacing:.8px;text-align:center;width:90%;
@@ -104,8 +127,9 @@ canvas{display:block}
 </style>
 </head>
 <body>
+<div id="gameTitle">FIND THE SOURCE</div>
+
 <div id="hud">
-  <div id="title">SOURCE</div>
   <div>World: <span id="world">Void</span></div>
   <div>Level: <span id="level">1</span></div>
   <div>Round: <span id="round">1</span>/10</div>
