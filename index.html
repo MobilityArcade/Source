@@ -251,6 +251,7 @@ const clock = new THREE.Clock();
   function saveProgress(){
 
   localStorage.setItem("sourceLevel", level);
+  localStorage.setItem("sourceRound", round);
   localStorage.setItem("sourceScore", score);
   localStorage.setItem("sourceBestScore", bestScore);
 
@@ -261,6 +262,9 @@ function loadProgress(){
   const savedLevel =
     localStorage.getItem("sourceLevel");
 
+  const savedRound =
+  localStorage.getItem("sourceRound");
+
   const savedScore =
     localStorage.getItem("sourceScore");
 
@@ -268,9 +272,9 @@ function loadProgress(){
     localStorage.getItem("sourceBestScore");
 
   if(savedLevel) level = Number(savedLevel);
+  if(savedRound) round = Number(savedRound);
   if(savedScore) score = Number(savedScore);
   if(savedBest) bestScore = Number(savedBest);
-
   setTimeout(()=>{
     updateHUD();
   },100);
@@ -1805,6 +1809,7 @@ function continueToNextRound(){
   scene.fog.density = baseFogDensity;
 
   round += 1;
+  saveProgress();
 
   if(round > 10){
 
