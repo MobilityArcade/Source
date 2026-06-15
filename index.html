@@ -137,15 +137,29 @@ canvas{display:block}
 .statLine:first-child{border-top:none;}
 .tapContinue{margin-top:max(18px, env(safe-area-inset-top));font-size:12px;letter-spacing:4px;opacity:.78;}
 #hint{
-  position:absolute;bottom:120px;left:50%;transform:translateX(-50%);
-  opacity:.62;font-size:13px;letter-spacing:.8px;text-align:center;width:90%;
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+
+  bottom:170px;
+
+  z-index:9999;
+
+  color:rgba(255,255,255,.75);
+  font-size:13px;
+  letter-spacing:.8px;
+  text-align:center;
+
+  width:92%;
+
+  pointer-events:none;
 }
   @media (max-width:768px){
 
   #hint{
-    bottom:140px;
+    bottom:190px;
     font-size:12px;
-    width:92%;
+    width:94%;
   }
 
 }
