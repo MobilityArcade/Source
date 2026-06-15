@@ -137,8 +137,17 @@ canvas{display:block}
 .statLine:first-child{border-top:none;}
 .tapContinue{margin-top:max(18px, env(safe-area-inset-top));font-size:12px;letter-spacing:4px;opacity:.78;}
 #hint{
-  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:120px;left:50%;transform:translateX(-50%);
   opacity:.62;font-size:13px;letter-spacing:.8px;text-align:center;width:90%;
+}
+  @media (max-width:768px){
+
+  #hint{
+    bottom:140px;
+    font-size:12px;
+    width:92%;
+  }
+
 }
 </style>
 </head>
