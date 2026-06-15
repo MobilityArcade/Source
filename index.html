@@ -2,7 +2,7 @@
 <html>
 <head>
   <!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ABC123XYZ"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VVVFW0BJHB"></script>
 
 <script>
 window.dataLayer = window.dataLayer || [];
@@ -135,7 +135,7 @@ canvas{display:block}
 #roundComplete .small{font-size:15px;line-height:1.9;opacity:.96;}
 .statLine{display:flex;justify-content:space-between;gap:28px;border-top:1px solid rgba(255,255,255,.10);padding:8px 0;}
 .statLine:first-child{border-top:none;}
-.tapContinue{margin-top:max(18px, env(safe-area-inset-top));18px;font-size:12px;letter-spacing:4px;opacity:.78;}
+.tapContinue{margin-top:max(18px, env(safe-area-inset-top));font-size:12px;letter-spacing:4px;opacity:.78;}
 #hint{
   position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
   opacity:.62;font-size:13px;letter-spacing:.8px;text-align:center;width:90%;
@@ -1675,7 +1675,16 @@ function getDiscoveryTitle(percent){
   if(percent >= 25) return "NAVIGATOR";
   return "EXPLORER";
 }
+  
 function showRoundComplete(reason="ROUND COMPLETE"){
+
+gtag('event', 'round_complete', {
+    level: level,
+    round: round,
+    score: score,
+    sources_found: roundSourcesFound
+  });
+  
   const panel = document.getElementById("roundComplete");
   if(!panel) return;
   const gained = score - roundStartScore;
@@ -1761,9 +1770,22 @@ function continueToNextRound(){
 
     const cycle =
       Math.floor((level - 1) / 10) + 1;
+    gtag('event', 'cycle_reached', {
+  cycle: cycle
+});
 
     const sourceRank =
       getSourceRank(cycle);
+
+    gtag('event', 'rank_earned', {
+  rank: sourceRank,
+  cycle: cycle
+});
+
+    gtag('event', 'level_complete', {
+  level: level,
+  score: score
+});
 
     if(panel){
       panel.innerHTML = `
@@ -1885,6 +1907,11 @@ function beaconObject(pos){
   return group;
 }
 
+gtag('event', 'game_start', {
+  level: level,
+  round: round
+});
+  
 function createRound(){
   updateWorld();
   scene.fog.density = baseFogDensity;
@@ -2058,6 +2085,11 @@ function foundSource(){
   b.userData.state = "collected";
   b.userData.fade = 1;
   foundCount++;
+  gtag('event', 'source_found', {
+  level: level,
+  round: round,
+  found: foundCount
+});
   roundSourcesFound++;
 
   const nowFound = performance.now();
@@ -2085,6 +2117,11 @@ function advanceRoundFromTimer(){
   combo = 1;
   roundTimer = 0;
   playVictoryFanfare();
+  gtag('event', 'round_failed', {
+  level: level,
+  round: round,
+  sources_found: roundSourcesFound
+});
   showRoundComplete("TIME COMPLETE");
 }
 
