@@ -248,7 +248,34 @@ let warpSteerLastX = 0;
 let warpSteerLastY = 0;
 let baseFogDensity = scene.fog.density;
 const clock = new THREE.Clock();
+  function saveProgress(){
 
+  localStorage.setItem("sourceLevel", level);
+  localStorage.setItem("sourceScore", score);
+  localStorage.setItem("sourceBestScore", bestScore);
+
+}
+
+function loadProgress(){
+
+  const savedLevel =
+    localStorage.getItem("sourceLevel");
+
+  const savedScore =
+    localStorage.getItem("sourceScore");
+
+  const savedBest =
+    localStorage.getItem("sourceBestScore");
+
+  if(savedLevel) level = Number(savedLevel);
+  if(savedScore) score = Number(savedScore);
+  if(savedBest) bestScore = Number(savedBest);
+
+  setTimeout(()=>{
+    updateHUD();
+  },100);
+
+}
 const WORLDS = [
   {name:"Void",        colors:[0x1d2cff,0x5d3dff,0xb24fff,0xff4fa3,0xffffff,0x6dd6ff], fog:0.00100, accent:0x8aa2ff},
   {name:"Singularity", colors:[0xff3d6e,0xff6a00,0x7b3cff,0x1d2cff,0xffffff,0x111133], fog:0.00118, accent:0xff3d6e},
@@ -1655,6 +1682,7 @@ function showScorePopup(text){
 function addScore(points, label="+"){
   const gained = Math.round(points * combo);
   score += gained;
+  saveProgress();
   if(score > bestScore){
     bestScore = score;
     localStorage.setItem('sourceBestScore', String(bestScore));
@@ -1856,6 +1884,7 @@ function continueToNextRound(){
 
     round = 1;
     level += 1;
+    saveProgress();
     sphereRadius = 130;
 
     levelCompletePending = true;
@@ -1995,7 +2024,10 @@ function updateHUD(signalText="Signal: listening..."){
   const t=document.getElementById("timer"); if(t) t.textContent=Math.max(0,Math.ceil(roundTimer));
 }
 
+loadProgress();
+
 updateWorld(true);
+
 createRound();
 
 let dragging = false, lastX=0, lastY=0;
