@@ -17,7 +17,12 @@
 <script>
 window.dataLayer = window.dataLayer || [];
 
+const DEV_MODE = false;
+
 function gtag(){
+
+  if(DEV_MODE) return;
+
   dataLayer.push(arguments);
 }
 
@@ -215,6 +220,9 @@ renderer.domElement.style.height = "100%";
 
 let level = 1;
 let round = 1;
+ 
+const sessionStartTime = Date.now();
+ 
 let sphereRadius = 130;
 let beacons = [];
 let activeIndex = 0;
@@ -1697,9 +1705,21 @@ function addScore(points, label="+"){
   score += gained;
   saveProgress();
   if(score > bestScore){
-    bestScore = score;
-    localStorage.setItem('sourceBestScore', String(bestScore));
-  }
+
+  bestScore = score;
+
+  localStorage.setItem(
+    'sourceBestScore',
+    String(bestScore)
+  );
+
+  gtag('event', 'new_best_score', {
+    score: bestScore,
+    level: level,
+    round: round
+  });
+
+}
   showScorePopup(label + gained);
   updateHUD();
 }
@@ -1835,6 +1855,10 @@ function continueToNextRound(){
       Math.floor((level - 1) / 10) + 1;
     gtag('event', 'cycle_reached', {
   cycle: cycle
+});
+
+   gtag('event', 'highest_level_reached', {
+  level: level
 });
 
     const sourceRank =
@@ -2155,7 +2179,9 @@ function foundSource(){
   gtag('event', 'source_found', {
   level: level,
   round: round,
-  found: foundCount
+  found: foundCount,
+  total_found: foundCount,
+  score: score
 });
   roundSourcesFound++;
 
@@ -2446,6 +2472,35 @@ if(reverseWarpHeld){
 
 animate();
 
+window.addEventListener('beforeunload', () => {
+
+  const sessionSeconds =
+    Math.floor((Date.now() - sessionStartTime) / 1000);
+
+  gtag('event', 'session_end', {
+    session_length: sessionSeconds,
+    level: level,
+    round: round,
+    score: score
+  });
+
+});
+
+document.addEventListener('visibilitychange', () => {
+
+  if(document.hidden){
+
+    gtag('event', 'player_exit', {
+      level: level,
+      round: round,
+      score: score,
+      found: foundCount
+    });
+
+  }
+
+});
+
 window.addEventListener("resize",()=>{
   camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
@@ -2453,4 +2508,4 @@ window.addEventListener("resize",()=>{
 });
 </script>
 </body>
-</html>>
+</html>
