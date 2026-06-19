@@ -1998,13 +1998,13 @@ function createRound(){
   themeTimer = 0;
   playSourceTheme();
 
-  const count = 30;
+  const count = 60;
 
 // Smaller spacing so 30 sources can fit closer together
-const minSpacing = Math.max(9, sphereRadius * 0.08);
+const minSpacing = Math.max(6, sphereRadius * 0.05);
 
 // 30% closer play cluster
-const beaconSpawnRadius = sphereRadius * 0.50;
+const beaconSpawnRadius = sphereRadius * 0.40;
 
 for(let i=0;i<count;i++){
   let pos = randomPointInSphere(beaconSpawnRadius);
