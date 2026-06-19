@@ -184,7 +184,7 @@ canvas{display:block}
   <div>World: <span id="world">Void</span></div>
   <div>Level: <span id="level">1</span></div>
   <div>Round: <span id="round">1</span>/10</div>
-  <div>Found: <span id="found">0</span>/<span id="total">1</span></div>
+  <div>Sources: <span id="found">0</span></div>
   <div id="signal">Signal: waiting...</div>
   <div>Score: <span id="score">0</span></div>
   <div>Best: <span id="bestScore">0</span></div>
@@ -1776,9 +1776,8 @@ let discoveryRating = getDiscoveryTitleByScore(gained);
       <div class="big">${reason}</div>
       <div class="small">
         <div class="statLine"><span>ROUND SCORE</span><span id="roundScoreCount">0</span></div>
-        <div class="statLine"><span>SOURCES FOUND</span><span>${roundSourcesFound}/${beacons.length}</span></div>
+        <div class="statLine"><span>SOURCES</span><span>${roundSourcesFound}</span></div>
         <div class="statLine"><span>DISCOVERY</span><span>${discoveryRating}</span></div>
-        <div class="statLine"><span>PERCENT</span><span>${discoveryPercent}%</span></div>
         <div class="statLine"><span>TOTAL SCORE</span><span id="totalScoreCount">0</span></div>
         <div class="tapContinue">TAP TO CONTINUE</div>
       </div>
@@ -1998,7 +1997,7 @@ function createRound(){
   themeTimer = 0;
   playSourceTheme();
 
-  const count = 80;
+  const count = 100;
 
 // Smaller spacing so 30 sources can fit closer together
 const minSpacing = Math.max(14, sphereRadius * 0.22);
