@@ -196,7 +196,7 @@ canvas{display:block}
 <div id="foundFlash">FOUND</div>
 <div id="worldFlash"></div>
 <div id="roundComplete"></div>
-<div id="hint">Drag to look · Hold to warp + steer · 2-finger reverse · Choose any Source</div>
+<div id="hint">Drag to look · Hold to warp + steer · Choose any Source</div>
 
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -246,8 +246,6 @@ let particleRivers = [];
 let outerParticleRivers = [];
 let meteors = [];
 let nextMeteorTime = 3 + Math.random()*5;
-let warpHeld = false;
-let reverseWarpHeld = false;
 let warpBoost = 0;
 let lastLock = 0;
 let currentWorldIndex = -1;
@@ -1620,20 +1618,6 @@ function startWarpHold(){
   c.classList.add("warping");
   c.style.background="#39ff14";
 }
-function startReverseWarp(){
-  clearTimeout(holdTimer);
-  reverseWarpLock = true;
-  initAudio();
-  if(warpHeld) resetWarpMomentum();
-  warpHeld = false;
-  reverseWarpHeld = true;
-  vibrate([15,30,15]);
-  warpSteeringActive = true;
-  const pts = [...activeTouches.values()];
-  if(pts.length){
-    warpSteerLastX = pts[0].x;
-    warpSteerLastY = pts[0].y;
-  }
   const c=document.getElementById("center");
   c.classList.add("warping");
   c.style.background="#6dd6ff";
@@ -2096,7 +2080,7 @@ renderer.domElement.addEventListener("pointermove", e=>{
   if(activeTouches.size === 2){
     clearTimeout(holdTimer);
     reverseWarpLock = true;
-    if(!reverseWarpHeld) startReverseWarp();
+   if(false) startReverseWarp();
     const pts = [...activeTouches.values()];
     const d = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
 
@@ -2267,7 +2251,7 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 16);
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 14);
   applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
   moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
