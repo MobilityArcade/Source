@@ -2047,7 +2047,11 @@ function updateHUD(signalText="Signal: listening..."){
   document.getElementById("level").textContent = level;
   document.getElementById("round").textContent = round;
   document.getElementById("found").textContent = foundCount;
-  document.getElementById("total").textContent = beacons.length || round;
+
+const totalEl = document.getElementById("total");
+if(totalEl){
+    totalEl.textContent = beacons.length || round;
+}
   document.getElementById("signal").textContent = signalText;
   const s=document.getElementById("score"); if(s) s.textContent=score;
   const b=document.getElementById("bestScore"); if(b) b.textContent=bestScore;
