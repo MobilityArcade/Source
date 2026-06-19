@@ -2001,8 +2001,8 @@ function createRound(){
   const count = 80;
 
 // Smaller spacing so 30 sources can fit closer together
-const minSpacing = Math.max(10, sphereRadius * 0.15);
-
+const minSpacing = Math.max(14, sphereRadius * 0.22);
+ 
 // 30% closer play cluster
 const beaconSpawnRadius = sphereRadius * 0.90;
 
@@ -2025,9 +2025,15 @@ for(let i=0;i<count;i++){
   activeIndex = -1;
   beacons.forEach(b=>b.userData.state = "active");
 
-  camera.position.set(0, 0, sphereRadius * 0.55);
-  yaw = Math.PI;
-  pitch = 0;
+  camera.position.set(
+  0,
+  0,
+  0
+);
+  yaw = Math.random() * Math.PI * 2;
+
+pitch =
+  (Math.random() - 0.5) * 0.8;
   moveVelocity = 0;
   beatTimer = 0;
   warpBoost = 0;
