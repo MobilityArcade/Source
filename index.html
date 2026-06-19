@@ -2001,10 +2001,10 @@ function createRound(){
   const count = 80;
 
 // Smaller spacing so 30 sources can fit closer together
-const minSpacing = Math.max(20, sphereRadius * 0.50);
+const minSpacing = Math.max(10, sphereRadius * 0.15);
 
 // 30% closer play cluster
-const beaconSpawnRadius = sphereRadius * 0.40;
+const beaconSpawnRadius = sphereRadius * 0.90;
 
 for(let i=0;i<count;i++){
   let pos = randomPointInSphere(beaconSpawnRadius);
