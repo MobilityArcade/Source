@@ -1606,21 +1606,20 @@ function createLandmarks(){
 }
 function startWarpHold(){
   if(reverseWarpLock || reverseWarpHeld) return;
+
   initAudio();
-  if(reverseWarpHeld) resetWarpMomentum();
-  reverseWarpHeld = false;
+
   warpHeld = true;
+
   vibrate(20);
+
   warpSteeringActive = true;
   warpSteerLastX = holdStartX;
   warpSteerLastY = holdStartY;
-  const c=document.getElementById("center");
+
+  const c = document.getElementById("center");
   c.classList.add("warping");
-  c.style.background="#39ff14";
-}
-  const c=document.getElementById("center");
-  c.classList.add("warping");
-  c.style.background="#6dd6ff";
+  c.style.background = "#39ff14";
 }
 function stopWarpHold(){
   reverseWarpLock = false;
