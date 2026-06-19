@@ -1741,6 +1741,14 @@ function getDiscoveryTitle(percent){
   if(percent >= 25) return "NAVIGATOR";
   return "EXPLORER";
 }
+
+function getDiscoveryTitleByScore(roundScore){
+  if(roundScore >= 40000) return "MASTER SEEKER";
+  if(roundScore >= 20000) return "NAVIGATOR";
+  if(roundScore >= 10000) return "PATHFINDER";
+  if(roundScore >= 5000) return "SEEKER";
+  return "WANDERER";
+}
   
 function showRoundComplete(reason="ROUND COMPLETE"){
 
@@ -1759,20 +1767,7 @@ gtag('event', 'round_complete', {
   levelDiscoveryTotal += discoveryPercent;
   levelDiscoveryRounds++;
 
-let discoveryRating = "EXPLORER";
-
-if(discoveryPercent >= 90){
-  discoveryRating = "SOURCE MASTER";
-}
-else if(discoveryPercent >= 75){
-  discoveryRating = "SEEKER";
-}
-else if(discoveryPercent >= 50){
-  discoveryRating = "PATHFINDER";
-}
-else if(discoveryPercent >= 25){
-  discoveryRating = "NAVIGATOR";
-}
+let discoveryRating = getDiscoveryTitleByScore(gained);
 
   scene.fog.density = baseFogDensity * 1.75;
 
@@ -2003,16 +1998,25 @@ function createRound(){
   themeTimer = 0;
   playSourceTheme();
 
-  const count = 20;
-  const minSpacing = Math.max(14, sphereRadius * 0.12);
+  const count = 30;
 
-  for(let i=0;i<count;i++){
-    let pos = randomPointInSphere(sphereRadius * 0.72);
-    let tries = 0;
-    while(tries < 80 && beacons.some(b => b.position.distanceTo(pos) < minSpacing)){
-      pos = randomPointInSphere(sphereRadius * 0.72);
-      tries++;
-    }
+// Smaller spacing so 30 sources can fit closer together
+const minSpacing = Math.max(9, sphereRadius * 0.08);
+
+// 30% closer play cluster
+const beaconSpawnRadius = sphereRadius * 0.50;
+
+for(let i=0;i<count;i++){
+  let pos = randomPointInSphere(beaconSpawnRadius);
+  let tries = 0;
+
+  while(
+    tries < 80 &&
+    beacons.some(b => b.position.distanceTo(pos) < minSpacing)
+  ){
+    pos = randomPointInSphere(beaconSpawnRadius);
+    tries++;
+  }
     const b = beaconObject(pos);
     scene.add(b);
     beacons.push(b);
