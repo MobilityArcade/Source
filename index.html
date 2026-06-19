@@ -2252,7 +2252,7 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 14);
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 15);
   applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
   moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
