@@ -2303,12 +2303,12 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 15);
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 25);
   applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
-  moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
+  moveVelocity = THREE.MathUtils.clamp(moveVelocity, -12, 12);
   moveVelocity *= 0.88;
-  if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.90;
+  if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.96;
 
   if(innerParticles){
     innerParticles.rotation.y += dt * (0.006 + Math.abs(moveVelocity + warpBoost)*0.0009);
