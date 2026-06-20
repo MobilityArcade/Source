@@ -2264,7 +2264,9 @@ if(roundPaused){
 
   updateCamera();
 
-  const f = forwardVector();
+  updateCamera();
+
+const f = forwardVector();
 
 const radial =
   camera.position.clone().normalize();
@@ -2279,14 +2281,15 @@ const tangent =
 
 const curvedMove =
   f.clone()
-   .add(tangent.multiplyScalar(0.35))
+   .add(tangent.multiplyScalar(0.20))
    .normalize();
 
 camera.position.addScaledVector(
   curvedMove,
   (moveVelocity + warpBoost) * dt * 20
 );
-  applySoftBoundary();
+
+applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
   moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
   moveVelocity *= 0.88;
