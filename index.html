@@ -196,7 +196,7 @@ canvas{display:block}
 <div id="foundFlash">FOUND</div>
 <div id="worldFlash"></div>
 <div id="roundComplete"></div>
-<div id="hint">Drag to steer · Stay on course · Collect Sources</div>
+<div id="hint">Drag to look · Hold to warp + steer · Choose any Source</div>
 
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -223,7 +223,6 @@ let round = 1;
 const sessionStartTime = Date.now();
  
 let sphereRadius = 130;
-let boundarySphere;
 let beacons = [];
 let activeIndex = 0;
 let foundCount = 0;
@@ -254,7 +253,7 @@ let lastLock = 0;
 let currentWorldIndex = -1;
 let yaw = Math.PI;
 let pitch = 0;
-let moveVelocity = 4;
+let moveVelocity = 0;
 let foundLock = false;
 let roundTransitioning = false;
 let roundPaused = false;
@@ -1608,10 +1607,32 @@ function createLandmarks(){
   ]();
 }
 function startWarpHold(){
-  return;
+  if(reverseWarpLock || reverseWarpHeld) return;
+
+  initAudio();
+
+  warpHeld = true;
+
+  vibrate(20);
+
+  warpSteeringActive = true;
+  warpSteerLastX = holdStartX;
+  warpSteerLastY = holdStartY;
+
+  const c = document.getElementById("center");
+  c.classList.add("warping");
+  c.style.background = "#39ff14";
 }
 function stopWarpHold(){
-  return;
+  reverseWarpLock = false;
+  warpHeld = false;
+  reverseWarpHeld = false;
+  warpSteeringActive = false;
+  warpBoost *= 0.60;
+  moveVelocity *= 0.75;
+  const c=document.getElementById("center");
+  c.classList.remove("warping");
+  c.style.background="#39ff14";
 }
 let reverseWarpLock = false;
 let holdTimer = null;
@@ -1958,28 +1979,6 @@ gtag('event', 'game_start', {
 });
   
 function createRound(){
-
- if(boundarySphere){
-  scene.remove(boundarySphere);
-}
-
-boundarySphere = new THREE.Mesh(
-  new THREE.SphereGeometry(
-    sphereRadius,
-    64,
-    64
-  ),
-  new THREE.MeshBasicMaterial({
-    color:0x444444,
-    wireframe:true,
-    transparent:true,
-    opacity:0.12,
-    side:THREE.BackSide
-  })
-);
-
-scene.add(boundarySphere);
- 
   updateWorld();
   scene.fog.density = baseFogDensity;
 
@@ -2004,7 +2003,7 @@ scene.add(boundarySphere);
 const minSpacing = Math.max(14, sphereRadius * 0.22);
  
 // 30% closer play cluster
-const beaconSpawnRadius = sphereRadius * 0.80;
+const beaconSpawnRadius = sphereRadius * 0.90;
 
 for(let i=0;i<count;i++){
   let pos = randomPointInSphere(beaconSpawnRadius);
@@ -2140,38 +2139,50 @@ function applySoftBoundary(){
     const normal =
       camera.position.clone().normalize();
 
-    const penetration =
-      d - maxR;
-
-    camera.position.add(
-      normal.multiplyScalar(
-        -Math.min(
-          penetration * 0.25,
-          1.0
-        )
-      )
+    camera.position.copy(
+      normal.clone().multiplyScalar(maxR)
     );
 
-    moveVelocity *= 0.96;
+    const f = forwardVector();
+
+    const outward =
+      normal.clone().multiplyScalar(
+        f.dot(normal)
+      );
+
+    const tangent =
+      f.clone().sub(outward).normalize();
+
+    yaw =
+      Math.atan2(
+        tangent.x,
+        tangent.z
+      );
+
+    pitch =
+      Math.asin(
+        tangent.y
+      );
+
+    moveVelocity *= 0.98;
   }
 
   const edgeStart = sphereRadius * 0.78;
   const current = camera.position.length();
 
   if(current > edgeStart){
-
     const t = THREE.MathUtils.clamp(
-      (current - edgeStart) /
-      (maxR - edgeStart),
+      (current - edgeStart) / (maxR - edgeStart),
       0,
       1
     );
 
     if(moveVelocity > 0){
-      moveVelocity *= (1 - t * 0.03);
+      moveVelocity *= (1 - t * 0.08);
     }
   }
 }
+
 
 function setNextActive(){
   if(roundTransitioning) return;
@@ -2292,11 +2303,21 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 15);
+  applySoftBoundary();
+  warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
+  moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
+  moveVelocity *= 0.88;
+  if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.90;
 
-camera.position.addScaledVector(
-  f,
-  120 * dt
-);
+  if(innerParticles){
+    innerParticles.rotation.y += dt * (0.006 + Math.abs(moveVelocity + warpBoost)*0.0009);
+    innerParticles.rotation.x += dt * 0.002;
+    innerParticles.position.x = Math.sin(time * 0.00012) * 0.9;
+    innerParticles.position.y = Math.cos(time * 0.0001) * 0.65;
+    innerParticles.material.size = 0.9 + Math.min(8.0, Math.abs(moveVelocity + warpBoost)*0.25);
+    innerParticles.material.opacity = 0.74 + Math.min(0.18, Math.abs(moveVelocity + warpBoost)*0.01);
+  }
 
   landmarks.forEach((l,i)=>{
     l.rotation.y += dt * (l.userData.spin || 0.04);
