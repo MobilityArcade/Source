@@ -2129,20 +2129,43 @@ window.addEventListener("wheel", e=>{
   moveVelocity += -e.deltaY * 0.009;
 });
 
-function applySoftBoundary(){
-  const d = camera.position.length();
-  const maxR = sphereRadius * 0.94;
-  if(d > maxR){
-    const normal = camera.position.clone().normalize();
-    camera.position.copy(normal.multiplyScalar(maxR));
-    const f = forwardVector();
-    if(f.dot(normal) > 0) moveVelocity *= 0.18;
-  }
+if(d > maxR){
+
+  const normal =
+    camera.position.clone().normalize();
+
+  camera.position.copy(
+    normal.clone().multiplyScalar(maxR)
+  );
+
+  const f = forwardVector();
+
+  const outward =
+    normal.clone().multiplyScalar(
+      f.dot(normal)
+    );
+
+  const tangent =
+    f.clone().sub(outward).normalize();
+
+  yaw =
+    Math.atan2(
+      tangent.x,
+      tangent.z
+    );
+
+  pitch =
+    Math.asin(
+      tangent.y
+    );
+
+  moveVelocity *= 0.98;
+}
   const edgeStart = sphereRadius * 0.78;
   const current = camera.position.length();
   if(current > edgeStart){
     const t = THREE.MathUtils.clamp((current - edgeStart) / (maxR - edgeStart), 0, 1);
-    if(moveVelocity > 0) moveVelocity *= (1 - t * 0.55);
+    if(moveVelocity > 0) moveVelocity *= (1 - t * 0.08);
   }
 }
 
