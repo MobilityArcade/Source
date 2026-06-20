@@ -2140,8 +2140,8 @@ function applySoftBoundary(){
       camera.position.clone().normalize();
 
     camera.position.copy(
-      normal.clone().multiplyScalar(maxR)
-    );
+  normal.clone().multiplyScalar(-maxR * 0.95)
+);
 
     const f = forwardVector();
 
