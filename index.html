@@ -1997,7 +1997,7 @@ function createRound(){
   themeTimer = 0;
   playSourceTheme();
 
-  const count = 300;
+  const count = 400;
 
 // Smaller spacing so 30 sources can fit closer together
 const minSpacing = Math.max(14, sphereRadius * 0.22);
@@ -2303,7 +2303,7 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 15);
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 18);
   applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
   moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
