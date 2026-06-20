@@ -2307,7 +2307,7 @@ if(roundPaused){
   applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
   moveVelocity = THREE.MathUtils.clamp(moveVelocity, -12, 12);
-  moveVelocity *= 0.88;
+  moveVelocity *= 0.95;
   if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.96;
 
   if(innerParticles){
