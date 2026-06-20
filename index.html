@@ -2114,36 +2114,34 @@ function applySoftBoundary(){
 
   if(d > maxR){
 
-    const normal =
-      camera.position.clone().normalize();
+  const normal =
+    camera.position.clone().normalize();
 
-    camera.position.copy(
-  normal.clone().multiplyScalar(-maxR * 0.95)
-);
+  camera.position.copy(
+    normal.clone().multiplyScalar(maxR)
+  );
 
-    const f = forwardVector();
+  const f = forwardVector();
 
-    const outward =
-      normal.clone().multiplyScalar(
-        f.dot(normal)
-      );
+  const outward =
+    normal.clone().multiplyScalar(
+      f.dot(normal)
+    );
 
-    const tangent =
-      f.clone().sub(outward).normalize();
+  const tangent =
+    f.clone().sub(outward).normalize();
 
-    yaw =
-      Math.atan2(
-        tangent.x,
-        tangent.z
-      );
+  yaw =
+    Math.atan2(
+      tangent.x,
+      tangent.z
+    );
 
-    pitch =
-      Math.asin(
-        tangent.y
-      );
-
-    moveVelocity *= 0.98;
-  }
+  pitch =
+    Math.asin(
+      tangent.y
+    );
+}
 
   const edgeStart = sphereRadius * 0.78;
   const current = camera.position.length();
@@ -2156,7 +2154,7 @@ function applySoftBoundary(){
     );
 
     if(moveVelocity > 0){
-      moveVelocity *= (1 - t * 0.08);
+      moveVelocity *= (1 - t * 0.02);
     }
   }
 }
