@@ -196,7 +196,7 @@ canvas{display:block}
 <div id="foundFlash">FOUND</div>
 <div id="worldFlash"></div>
 <div id="roundComplete"></div>
-<div id="hint">Drag to look · Hold to warp + steer · Choose any Source</div>
+<div id="hint">Drag to steer · Stay on course · Collect Sources</div>
 
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -253,7 +253,7 @@ let lastLock = 0;
 let currentWorldIndex = -1;
 let yaw = Math.PI;
 let pitch = 0;
-let moveVelocity = 0;
+let moveVelocity = 4;
 let foundLock = false;
 let roundTransitioning = false;
 let roundPaused = false;
@@ -1607,32 +1607,10 @@ function createLandmarks(){
   ]();
 }
 function startWarpHold(){
-  if(reverseWarpLock || reverseWarpHeld) return;
-
-  initAudio();
-
-  warpHeld = true;
-
-  vibrate(20);
-
-  warpSteeringActive = true;
-  warpSteerLastX = holdStartX;
-  warpSteerLastY = holdStartY;
-
-  const c = document.getElementById("center");
-  c.classList.add("warping");
-  c.style.background = "#39ff14";
+  return;
 }
 function stopWarpHold(){
-  reverseWarpLock = false;
-  warpHeld = false;
-  reverseWarpHeld = false;
-  warpSteeringActive = false;
-  warpBoost *= 0.60;
-  moveVelocity *= 0.75;
-  const c=document.getElementById("center");
-  c.classList.remove("warping");
-  c.style.background="#39ff14";
+  return;
 }
 let reverseWarpLock = false;
 let holdTimer = null;
