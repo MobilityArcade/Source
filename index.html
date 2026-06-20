@@ -2129,45 +2129,60 @@ window.addEventListener("wheel", e=>{
   moveVelocity += -e.deltaY * 0.009;
 });
 
-if(d > maxR){
+function applySoftBoundary(){
 
-  const normal =
-    camera.position.clone().normalize();
+  const d = camera.position.length();
+  const maxR = sphereRadius * 0.98;
 
-  camera.position.copy(
-    normal.clone().multiplyScalar(maxR)
-  );
+  if(d > maxR){
 
-  const f = forwardVector();
+    const normal =
+      camera.position.clone().normalize();
 
-  const outward =
-    normal.clone().multiplyScalar(
-      f.dot(normal)
+    camera.position.copy(
+      normal.clone().multiplyScalar(maxR)
     );
 
-  const tangent =
-    f.clone().sub(outward).normalize();
+    const f = forwardVector();
 
-  yaw =
-    Math.atan2(
-      tangent.x,
-      tangent.z
-    );
+    const outward =
+      normal.clone().multiplyScalar(
+        f.dot(normal)
+      );
 
-  pitch =
-    Math.asin(
-      tangent.y
-    );
+    const tangent =
+      f.clone().sub(outward).normalize();
 
-  moveVelocity *= 0.98;
-}
+    yaw =
+      Math.atan2(
+        tangent.x,
+        tangent.z
+      );
+
+    pitch =
+      Math.asin(
+        tangent.y
+      );
+
+    moveVelocity *= 0.98;
+  }
+
   const edgeStart = sphereRadius * 0.78;
   const current = camera.position.length();
+
   if(current > edgeStart){
-    const t = THREE.MathUtils.clamp((current - edgeStart) / (maxR - edgeStart), 0, 1);
-    if(moveVelocity > 0) moveVelocity *= (1 - t * 0.08);
+    const t = THREE.MathUtils.clamp(
+      (current - edgeStart) / (maxR - edgeStart),
+      0,
+      1
+    );
+
+    if(moveVelocity > 0){
+      moveVelocity *= (1 - t * 0.08);
+    }
   }
 }
+
 
 function setNextActive(){
   if(roundTransitioning) return;
