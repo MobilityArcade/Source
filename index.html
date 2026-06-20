@@ -223,6 +223,7 @@ let round = 1;
 const sessionStartTime = Date.now();
  
 let sphereRadius = 130;
+let boundarySphere;
 let beacons = [];
 let activeIndex = 0;
 let foundCount = 0;
@@ -1957,6 +1958,28 @@ gtag('event', 'game_start', {
 });
   
 function createRound(){
+
+ if(boundarySphere){
+  scene.remove(boundarySphere);
+}
+
+boundarySphere = new THREE.Mesh(
+  new THREE.SphereGeometry(
+    sphereRadius,
+    64,
+    64
+  ),
+  new THREE.MeshBasicMaterial({
+    color:0x444444,
+    wireframe:true,
+    transparent:true,
+    opacity:0.12,
+    side:THREE.BackSide
+  })
+);
+
+scene.add(boundarySphere);
+ 
   updateWorld();
   scene.fog.density = baseFogDensity;
 
@@ -2114,51 +2137,41 @@ function applySoftBoundary(){
 
   if(d > maxR){
 
-  const normal =
-    camera.position.clone().normalize();
+    const normal =
+      camera.position.clone().normalize();
 
-  camera.position.copy(
-    normal.clone().multiplyScalar(maxR)
-  );
+    const penetration =
+      d - maxR;
 
-  const f = forwardVector();
-
-  const outward =
-    normal.clone().multiplyScalar(
-      f.dot(normal)
+    camera.position.add(
+      normal.multiplyScalar(
+        -Math.min(
+          penetration * 0.25,
+          1.0
+        )
+      )
     );
 
-  const tangent =
-    f.clone().sub(outward).normalize();
-
-  yaw =
-    Math.atan2(
-      tangent.x,
-      tangent.z
-    );
-
-  pitch =
-    Math.asin(
-      tangent.y
-    );
-}
+    moveVelocity *= 0.96;
+  }
 
   const edgeStart = sphereRadius * 0.78;
   const current = camera.position.length();
 
   if(current > edgeStart){
+
     const t = THREE.MathUtils.clamp(
-      (current - edgeStart) / (maxR - edgeStart),
+      (current - edgeStart) /
+      (maxR - edgeStart),
       0,
       1
     );
 
     if(moveVelocity > 0){
-      moveVelocity *= (1 - t * 0.02);
+      moveVelocity *= (1 - t * 0.03);
     }
   }
 }
-
 
 function setNextActive(){
   if(roundTransitioning) return;
