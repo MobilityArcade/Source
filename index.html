@@ -2281,21 +2281,11 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 16);
-  applySoftBoundary();
-  warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
-  moveVelocity = THREE.MathUtils.clamp(moveVelocity, -12, 12);
-  moveVelocity *= 0.95;
-  if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.96;
 
-  if(innerParticles){
-    innerParticles.rotation.y += dt * (0.006 + Math.abs(moveVelocity + warpBoost)*0.0009);
-    innerParticles.rotation.x += dt * 0.002;
-    innerParticles.position.x = Math.sin(time * 0.00012) * 0.9;
-    innerParticles.position.y = Math.cos(time * 0.0001) * 0.65;
-    innerParticles.material.size = 0.9 + Math.min(8.0, Math.abs(moveVelocity + warpBoost)*0.25);
-    innerParticles.material.opacity = 0.74 + Math.min(0.18, Math.abs(moveVelocity + warpBoost)*0.01);
-  }
+camera.position.addScaledVector(
+  f,
+  120 * dt
+);
 
   landmarks.forEach((l,i)=>{
     l.rotation.y += dt * (l.userData.spin || 0.04);
