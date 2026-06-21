@@ -2086,7 +2086,54 @@ gtag('event', 'game_start', {
   level: level,
   round: round
 });
-  
+
+ function createCluster(x,y,z,amount){
+
+  for(let i=0;i<amount;i++){
+
+    const p = new THREE.Vector3(
+      x + (Math.random()-0.5)*25,
+      y + (Math.random()-0.5)*25,
+      z + (Math.random()-0.5)*80
+    );
+
+    const b = beaconObject(p);
+
+    scene.add(b);
+    beacons.push(b);
+  }
+}
+
+function createMeteorStream(){
+
+  const centerX =
+    (Math.random()-0.5)*250;
+
+  const centerY =
+    (Math.random()-0.5)*250;
+
+  for(let i=0;i<40;i++){
+
+    const p = new THREE.Vector3(
+
+      centerX +
+      (Math.random()-0.5)*15,
+
+      centerY +
+      (Math.random()-0.5)*15,
+
+      -100 - i*18
+
+    );
+
+    const b = beaconObject(p);
+
+    scene.add(b);
+    beacons.push(b);
+
+  }
+}
+ 
 function createRound(){
   updateWorld();
   scene.fog.density = baseFogDensity;
@@ -2106,7 +2153,7 @@ function createRound(){
   themeTimer = 0;
   playSourceTheme();
 
-  const count = 1000;
+  const count = 600;
 
   for(let i=0;i<count;i++){
     const pos = FREEFALL_MODE
@@ -2117,6 +2164,24 @@ function createRound(){
     scene.add(b);
     beacons.push(b);
   }
+
+createMeteorStream();
+createMeteorStream();
+createMeteorStream();
+
+for(let i=0;i<10;i++)
+
+  const centerX = (Math.random()-0.5)*180;
+  const centerY = (Math.random()-0.5)*180;
+  const centerZ = -200 - Math.random()*600;
+
+  createCluster(
+    centerX,
+    centerY,
+    centerZ,
+    40
+  );
+}
 
   activeIndex = -1;
   beacons.forEach(b=>b.userData.state = "active");
