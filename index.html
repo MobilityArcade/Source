@@ -2704,53 +2704,6 @@ if(reverseWarpHeld){
 
 
   beacons.forEach((b,i)=>{
-    const {core,aura,ring,rings,state,tierColor} = b.userData;
-    const pulse = 1 + Math.sin(time*0.006 + i)*0.06;
-
-    b.lookAt(camera.position);
-
-    if(state === "active"){
-      const color = tierColor || 0xff6600;
-      core.material.color.set(color);
-      aura.material.color.set(color);
-
-      const auraPulse = 1 + Math.sin(time*0.006)*0.28;
-      core.scale.setScalar(1 + Math.sin(time*0.010)*0.13);
-      aura.scale.setScalar(1.05 + auraPulse + signal*1.45 + lock*0.55);
-      aura.material.opacity = 0.01;
-      const rr = rings || [ring];
-      rr.forEach((r,ri)=>{
-        r.material.color.set(color);
-        r.scale.setScalar(1.0 + Math.sin(time*0.005 + ri*.75)*0.24 + lock*0.30);
-        r.material.opacity = 0.14 + signal*0.22 + lock*0.16;
-      });
-    }
-    else if(state === "collected"){
-      b.userData.fade = Math.max(0, (b.userData.fade ?? 1) - dt * 1.6);
-      const fade = b.userData.fade;
-
-      core.material.color.set(0x2494ff);
-      core.material.transparent = true;
-      core.material.opacity = fade;
-      core.scale.setScalar(Math.max(0.01, fade));
-
-      aura.material.opacity = 0;
-
-      const rr = rings || [ring];
-      rr.forEach(r=>{
-        r.material.color.set(0x2494ff);
-        r.material.opacity = fade * 0.12;
-        r.scale.setScalar(Math.max(0.01, fade));
-      });
-
-      if(fade <= 0.02){
-        if(FREEFALL_MODE){
-          recycleFreefallBeacon(b);
-        } else {
-          scene.remove(b);
-        }
-      }
-    }
     else {
       core.material.color.set(0x333333);
       core.scale.setScalar(0.85 * pulse);
