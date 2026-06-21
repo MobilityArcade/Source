@@ -33,7 +33,7 @@ gtag('config', 'G-VVVFW0BJHB');
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SOURCE</title>
 <!-- SOURCE 8.8 ROUND TIMER FIX -->
-<!-- SOURCE 10.5: Audio Identity -->
+<!-- SOURCE 13.0 FREEFALL FIELD: original visuals + 3D skydive movement -->
 <style>
 html,body{
   margin:0;height:100%;overflow:hidden;background:#000;color:white;
@@ -196,7 +196,7 @@ canvas{display:block}
 <div id="foundFlash">FOUND</div>
 <div id="worldFlash"></div>
 <div id="roundComplete"></div>
-<div id="hint">Drag to look · Hold to warp + steer · Choose any Source</div>
+<div id="hint">Drag to drift · Freefall through Sources · Collect as many as you can</div>
 
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -223,6 +223,20 @@ let round = 1;
 const sessionStartTime = Date.now();
  
 let sphereRadius = 130;
+
+// SOURCE FREEFALL V13
+// Keeps the original Find The Source visual style, but changes gameplay
+// from closed-sphere navigation into an endless 3D skydive field.
+const FREEFALL_MODE = true;
+const FREEFALL_RADIUS = 165;
+const FREEFALL_LENGTH = 1850;
+const FREEFALL_SPEED = 150;
+const FREEFALL_NEAR_Z = 42;
+const FREEFALL_FAR_Z = -FREEFALL_LENGTH;
+const FREEFALL_DRIFT = 0.24;
+const FREEFALL_FRICTION = 0.88;
+let driftVelocityX = 0;
+let driftVelocityY = 0;
 let beacons = [];
 let activeIndex = 0;
 let foundCount = 0;
@@ -481,6 +495,15 @@ function forwardVector(){
 }
 
 function updateCamera(){
+  if(FREEFALL_MODE){
+    camera.lookAt(
+      camera.position.clone().add(
+        new THREE.Vector3(0,0,-1)
+      )
+    );
+    return;
+  }
+
   const f = forwardVector();
   camera.lookAt(camera.position.clone().add(f));
 }
@@ -518,6 +541,84 @@ function randomPointInSphere(radius){
     r * Math.sin(phi) * Math.sin(theta),
     r * Math.cos(phi)
   );
+}
+
+function randomPointInFreefallField(){
+  const angle = Math.random() * Math.PI * 2;
+  const radius = Math.sqrt(Math.random()) * FREEFALL_RADIUS;
+
+  return new THREE.Vector3(
+    Math.cos(angle) * radius,
+    Math.sin(angle) * radius,
+    FREEFALL_FAR_Z + Math.random() * FREEFALL_LENGTH
+  );
+}
+
+function recycleFreefallBeacon(b){
+  const p = randomPointInFreefallField();
+  p.z = FREEFALL_FAR_Z - Math.random() * 420;
+
+  b.position.copy(p);
+  b.userData.state = "active";
+  b.userData.fade = 1;
+
+  if(b.userData.core){
+    b.userData.core.material.transparent = false;
+    b.userData.core.material.opacity = 1;
+    b.userData.core.scale.setScalar(1);
+  }
+
+  if(b.userData.aura){
+    b.userData.aura.material.opacity = 0.0;
+  }
+
+  const rr = b.userData.rings || [b.userData.ring];
+  rr.forEach(r=>{
+    if(r && r.material){
+      r.material.opacity = 0.12;
+      r.scale.setScalar(1);
+    }
+  });
+
+  if(!b.parent) scene.add(b);
+}
+
+function applyFreefallDrift(dt){
+  camera.position.x += driftVelocityX * dt;
+  camera.position.y += driftVelocityY * dt;
+
+  driftVelocityX *= Math.pow(FREEFALL_FRICTION, dt * 60);
+  driftVelocityY *= Math.pow(FREEFALL_FRICTION, dt * 60);
+
+  const edge = Math.hypot(camera.position.x, camera.position.y);
+  if(edge > FREEFALL_RADIUS){
+    const scale = FREEFALL_RADIUS / edge;
+    camera.position.x *= scale;
+    camera.position.y *= scale;
+    driftVelocityX *= 0.35;
+    driftVelocityY *= 0.35;
+  }
+}
+
+function updateFreefallObjects(dt){
+  beacons.forEach(b=>{
+    if(b.userData.state === "collected") return;
+
+    b.position.z += FREEFALL_SPEED * dt;
+
+    if(b.position.z > FREEFALL_NEAR_Z){
+      recycleFreefallBeacon(b);
+    }
+  });
+
+  landmarks.forEach(l=>{
+    l.position.z += FREEFALL_SPEED * dt * 0.55;
+    if(l.position.z > 140){
+      const p = randomPointInFreefallField();
+      p.z = FREEFALL_FAR_Z - Math.random() * 700;
+      l.position.copy(p);
+    }
+  });
 }
 
 function toRoman(num){
@@ -1576,30 +1677,30 @@ function createLandmarks(){
 
   const landmarkTypes = [
     () => createRingPlanet(
-      randomPointInSphere(sphereRadius * 0.55),
+      (FREEFALL_MODE ? randomPointInFreefallField() : randomPointInSphere(sphereRadius * 0.55)),
       currentWorld().colors[
         Math.floor(Math.random()*currentWorld().colors.length)
       ]
     ),
 
     () => createBinaryPlanet(
-      randomPointInSphere(sphereRadius * 0.55)
+      (FREEFALL_MODE ? randomPointInFreefallField() : randomPointInSphere(sphereRadius * 0.55))
     ),
 
     () => createDistantSun(
-      randomPointInSphere(sphereRadius * 0.55)
+      (FREEFALL_MODE ? randomPointInFreefallField() : randomPointInSphere(sphereRadius * 0.55))
     ),
 
     () => createNebulaCloud(
-      randomPointInSphere(sphereRadius * 0.55)
+      (FREEFALL_MODE ? randomPointInFreefallField() : randomPointInSphere(sphereRadius * 0.55))
     ),
 
     () => createAsteroidCluster(
-      randomPointInSphere(sphereRadius * 0.55)
+      (FREEFALL_MODE ? randomPointInFreefallField() : randomPointInSphere(sphereRadius * 0.55))
     ),
 
     () => createComet(
-      randomPointInSphere(sphereRadius * 0.55)
+      (FREEFALL_MODE ? randomPointInFreefallField() : randomPointInSphere(sphereRadius * 0.55))
     )
   ];
 
@@ -2000,23 +2101,11 @@ function createRound(){
 
   const count = 400;
 
-// Smaller spacing so 30 sources can fit closer together
-const minSpacing = Math.max(14, sphereRadius * 0.22);
- 
-// 30% closer play cluster
-const beaconSpawnRadius = sphereRadius * 0.90;
+  for(let i=0;i<count;i++){
+    const pos = FREEFALL_MODE
+      ? randomPointInFreefallField()
+      : randomPointInSphere(sphereRadius * 0.90);
 
-for(let i=0;i<count;i++){
-  let pos = randomPointInSphere(beaconSpawnRadius);
-  let tries = 0;
-
-  while(
-    tries < 80 &&
-    beacons.some(b => b.position.distanceTo(pos) < minSpacing)
-  ){
-    pos = randomPointInSphere(beaconSpawnRadius);
-    tries++;
-  }
     const b = beaconObject(pos);
     scene.add(b);
     beacons.push(b);
@@ -2025,16 +2114,12 @@ for(let i=0;i<count;i++){
   activeIndex = -1;
   beacons.forEach(b=>b.userData.state = "active");
 
-  camera.position.set(
-  0,
-  0,
-  0
-);
-  yaw = Math.random() * Math.PI * 2;
-
-pitch =
-  (Math.random() - 0.5) * 0.8;
-  moveVelocity = 0;
+  camera.position.set(0,0,0);
+  yaw = Math.PI;
+  pitch = 0;
+  driftVelocityX = 0;
+  driftVelocityY = 0;
+  moveVelocity = CRUISE_SPEED;
   beatTimer = 0;
   warpBoost = 0;
 
@@ -2085,10 +2170,17 @@ renderer.domElement.addEventListener("pointermove", e=>{
   if(activeTouches.size === 1 && dragging){
     const dx = e.clientX-lastX;
     const dy = e.clientY-lastY;
-    const steerSpeed = (warpHeld || reverseWarpHeld) ? 0.0034 : 0.005;
-    yaw -= dx * steerSpeed;
-    pitch -= dy * steerSpeed;
-    pitch = Math.max(-1.55, Math.min(1.55, pitch));
+
+    if(FREEFALL_MODE){
+      driftVelocityX += dx * FREEFALL_DRIFT * 18;
+      driftVelocityY += -dy * FREEFALL_DRIFT * 18;
+    } else {
+      const steerSpeed = (warpHeld || reverseWarpHeld) ? 0.0034 : 0.005;
+      yaw -= dx * steerSpeed;
+      pitch -= dy * steerSpeed;
+      pitch = Math.max(-1.55, Math.min(1.55, pitch));
+    }
+
     lastX=e.clientX; lastY=e.clientY;
   }
 
@@ -2106,9 +2198,14 @@ renderer.domElement.addEventListener("pointermove", e=>{
 
     const dx = pts[0].x - warpSteerLastX;
     const dy = pts[0].y - warpSteerLastY;
-    yaw -= dx * 0.0026;
-    pitch -= dy * 0.0026;
-    pitch = Math.max(-1.55, Math.min(1.55, pitch));
+    if(FREEFALL_MODE){
+      driftVelocityX += dx * FREEFALL_DRIFT * 10;
+      driftVelocityY += -dy * FREEFALL_DRIFT * 10;
+    } else {
+      yaw -= dx * 0.0026;
+      pitch -= dy * 0.0026;
+      pitch = Math.max(-1.55, Math.min(1.55, pitch));
+    }
     warpSteerLastX = pts[0].x;
     warpSteerLastY = pts[0].y;
   }
@@ -2216,7 +2313,7 @@ function foundSource(){
     const d = camera.position.distanceTo(b.position);
     if(d < closestDist){ closestDist = d; closest = b; }
   });
-  if(!closest || closestDist >= 5.4) return;
+  if(!closest || closestDist >= (FREEFALL_MODE ? 10.5 : 5.4)) return;
 
   foundLock = true;
   const b = closest;
@@ -2314,14 +2411,22 @@ if(roundPaused){
 
   updateCamera();
 
-  const f = forwardVector();
- moveVelocity = THREE.MathUtils.lerp(moveVelocity,CRUISE_SPEED,0.04);
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 60);
-  applySoftBoundary();
-  warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
-  moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
-  moveVelocity *= 0.88;
-  if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.90;
+  const f = FREEFALL_MODE ? new THREE.Vector3(0,0,-1) : forwardVector();
+
+  if(FREEFALL_MODE){
+    moveVelocity = CRUISE_SPEED;
+    applyFreefallDrift(dt);
+    updateFreefallObjects(dt);
+    warpBoost = 0;
+  } else {
+    moveVelocity = THREE.MathUtils.lerp(moveVelocity,CRUISE_SPEED,0.04);
+    camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 60);
+    applySoftBoundary();
+    warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
+    moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
+    moveVelocity *= 0.88;
+    if(!warpHeld && !reverseWarpHeld) warpBoost *= 0.90;
+  }
 
   if(innerParticles){
     innerParticles.rotation.y += dt * (0.006 + Math.abs(moveVelocity + warpBoost)*0.0009);
@@ -2503,7 +2608,11 @@ if(reverseWarpHeld){
       });
 
       if(fade <= 0.02){
-        scene.remove(b);
+        if(FREEFALL_MODE){
+          recycleFreefallBeacon(b);
+        } else {
+          scene.remove(b);
+        }
       }
     }
     else {
