@@ -2316,7 +2316,7 @@ if(roundPaused){
 
   const f = forwardVector();
  moveVelocity = THREE.MathUtils.lerp(moveVelocity,CRUISE_SPEED,0.04);
-  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 35);
+  camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 60);
   applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
   moveVelocity = THREE.MathUtils.clamp(moveVelocity, -8, 8);
