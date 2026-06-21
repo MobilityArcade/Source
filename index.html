@@ -2156,19 +2156,20 @@ function createRound(){
   const count = 600;
 
   for(let i=0;i<count;i++){
-    const pos = FREEFALL_MODE
-      ? randomPointInFreefallField()
-      : randomPointInSphere(sphereRadius * 0.90);
+  const pos = FREEFALL_MODE
+    ? randomPointInFreefallField()
+    : randomPointInSphere(sphereRadius * 0.90);
 
-    const b = beaconObject(pos);
-    scene.add(b);
-    beacons.push(b);
+  const b = beaconObject(pos);
+  scene.add(b);
+  beacons.push(b);
+}
 
 createMeteorStream();
 createMeteorStream();
 createMeteorStream();
 
-for(let i=0;i<10;i++)
+for(let i=0;i<10;i++){
 
   const centerX = (Math.random()-0.5)*180;
   const centerY = (Math.random()-0.5)*180;
