@@ -253,7 +253,8 @@ let lastLock = 0;
 let currentWorldIndex = -1;
 let yaw = Math.PI;
 let pitch = 0;
-let moveVelocity = 0;
+let moveVelocity = 4.0;
+const CRUISE_SPEED = 4.0;
 let foundLock = false;
 let roundTransitioning = false;
 let roundPaused = false;
@@ -1969,7 +1970,7 @@ function beaconObject(pos){
   }
 
   group.position.copy(pos);
-  group.userData = {core, aura, ring:rings[0], rings, tier, value:tier*100, tierColor, state:"dormant", fade:1};
+  group.userData = {core, aura, ring:rings[0], rings, tier, value:tier*10, tierColor, state:"dormant", fade:1};
   return group;
 }
 
@@ -2151,34 +2152,45 @@ function applySoftBoundary(){
       );
 
     const tangent =
-      f.clone().sub(outward).normalize();
+      f.clone().sub(outward);
 
-    yaw =
-      Math.atan2(
-        tangent.x,
-        tangent.z
-      );
+    if(tangent.lengthSq() > 0.0001){
 
-    pitch =
-      Math.asin(
-        tangent.y
-      );
+      tangent.normalize();
 
-    moveVelocity *= 0.98;
+      yaw =
+        Math.atan2(
+          tangent.x,
+          tangent.z
+        );
+
+      pitch =
+        Math.asin(
+          tangent.y
+        );
+
+      moveVelocity *= 1.02;
+    }
   }
 
   const edgeStart = sphereRadius * 0.78;
   const current = camera.position.length();
 
   if(current > edgeStart){
+
     const t = THREE.MathUtils.clamp(
-      (current - edgeStart) / (maxR - edgeStart),
+      (current - edgeStart) /
+      (maxR - edgeStart),
       0,
       1
     );
 
-    if(moveVelocity > 0){
-      moveVelocity *= (1 - t * 0.08);
+    if(moveVelocity > CRUISE_SPEED){
+
+      moveVelocity *= (
+        1 - t * 0.02
+      );
+
     }
   }
 }
@@ -2303,6 +2315,7 @@ if(roundPaused){
   updateCamera();
 
   const f = forwardVector();
+ moveVelocity = THREE.MathUtils.lerp(moveVelocity,CRUISE_SPEED,0.04);
   camera.position.addScaledVector(f, (moveVelocity + warpBoost) * dt * 18);
   applySoftBoundary();
   warpBoost = THREE.MathUtils.clamp(warpBoost, -8, 8);
