@@ -745,10 +745,6 @@ positions[i*3+1] =
 
 positions[i*3+2] =
   FREEFALL_FAR_Z +
-  Math.random() * FREEFALL_LENGTH; p = randomPointInSphere(sphereRadius * 0.98);
-    positions[i*3] = p.x;
-    positions[i*3+1] = p.y;
-    positions[i*3+2] = p.z;
 
     const c = palette[Math.floor(Math.random()*palette.length)].clone();
     const dim = 0.30 + Math.random() * 0.50;
