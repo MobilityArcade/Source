@@ -228,7 +228,7 @@ let sphereRadius = 130;
 // Keeps the original Find The Source visual style, but changes gameplay
 // from closed-sphere navigation into an endless 3D skydive field.
 const FREEFALL_MODE = true;
-const FREEFALL_RADIUS = 50;
+const FREEFALL_RADIUS = 35;
 const FREEFALL_LENGTH = 50;
 const FREEFALL_SPEED = 100;
 const FREEFALL_NEAR_Z = 42;
@@ -543,9 +543,13 @@ function randomPointInSphere(radius){
   );
 }
 
-function randomPointInFreefallField(){
-  const angle = Math.random() * Math.PI * 2;
-  const radius = Math.sqrt(Math.random()) * (FREEFALL_RADIUS * 0.75);
+const lanes = [-25, 0, 25];
+
+return new THREE.Vector3(
+    lanes[Math.floor(Math.random() * lanes.length)],
+    (Math.random() * 2 - 1) * 25,
+    FREEFALL_FAR_Z + Math.random() * FREEFALL_LENGTH
+);
 
   return new THREE.Vector3(
     Math.cos(angle) * radius,
@@ -725,7 +729,7 @@ function makeInnerParticles(){
   scene.remove(innerParticles);
 }
 
-  const count = 3000;
+  const count = 1200;
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
   const world = currentWorld();
