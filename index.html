@@ -243,7 +243,10 @@ let foundCount = 0;
 let score = 0;
 let bestScore = Number(localStorage.getItem('sourceBestScore')||0);
 let combo = 1;
+let clusterSpawnTimer = 0;
 let roundTimer = 60;
+let foundCount = 0;
+let score = 0;
 let lastSourceFoundAt = 0;
 let stardust = [];
 let roundStartScore = 0;
@@ -2165,6 +2168,26 @@ function createRound(){
   beacons.push(b);
 }
 
+ function spawnRandomCluster(){
+
+  const centerX =
+    (Math.random()-0.5) * 220;
+
+  const centerY =
+    (Math.random()-0.5) * 220;
+
+  const centerZ =
+    camera.position.z - 500;
+
+  createCluster(
+    centerX,
+    centerY,
+    centerZ,
+    25
+  );
+
+}
+
 createMeteorStream();
 createMeteorStream();
 createMeteorStream();
@@ -2438,6 +2461,23 @@ function advanceRoundFromTimer(){
 function animate(){
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
+ clusterSpawnTimer += dt;
+
+if(clusterSpawnTimer > 3){
+
+  clusterSpawnTimer = 0;
+
+  const centerX = (Math.random()-0.5)*180;
+  const centerY = (Math.random()-0.5)*180;
+  const centerZ = camera.position.z - 500;
+
+  createCluster(
+    centerX,
+    centerY,
+    centerZ,
+    30
+  );
+}
   const time = performance.now();
   if(audioCtx){
   themeTimer += dt;
@@ -2479,6 +2519,16 @@ if(roundPaused){
     advanceRoundFromTimer();
     return;
   }
+
+ clusterSpawnTimer += dt;
+
+if(clusterSpawnTimer > 3){
+
+  clusterSpawnTimer = 0;
+
+  spawnRandomCluster();
+
+}
 
 
   updateCamera();
