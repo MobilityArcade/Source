@@ -2376,46 +2376,47 @@ function setNextActive(){
 }
 
 function foundSource(){
-  if(foundLock || roundTransitioning || roundPaused) return;
+  if(roundTransitioning || roundPaused) return;
 
-  let closest = null;
-  let closestDist = Infinity;
+  const collectRadius = FREEFALL_MODE ? 16.5 : 6.2;
+
+  const collectedNow = [];
+
   beacons.forEach(b=>{
     if(b.userData.state === "collected") return;
+
     const d = camera.position.distanceTo(b.position);
-    if(d < closestDist){ closestDist = d; closest = b; }
+
+    if(d < collectRadius){
+      collectedNow.push(b);
+    }
   });
-  if(!closest || closestDist >= (FREEFALL_MODE ? 12.1 : 6.2)) return;
-  foundLock = true;
-  const b = closest;
-  b.userData.state = "collected";
-  b.userData.fade = 1;
-  foundCount++;
-  gtag('event', 'source_found', {
-  level: level,
-  round: round,
-  found: foundCount,
-  total_found: foundCount,
-  score: score
-});
-  roundSourcesFound++;
 
-  const nowFound = performance.now();
-  combo = (nowFound - lastSourceFoundAt < 10000) ? Math.min(combo + 1, 5) : 1;
-  lastSourceFoundAt = nowFound;
-  addScore(b.userData.value || 100, "+" + sourceTierLabel(b.userData.tier || 1) + " ");
-  discoverySound();
-  playCollectionChime(b.userData.tier || 1);
-  vibrate([30,40,70]);
+  if(collectedNow.length === 0) return;
 
-  document.getElementById("foundFlash").style.display = "grid";
-  setTimeout(()=>document.getElementById("foundFlash").style.display = "none", 460);
+  collectedNow.forEach(b=>{
+    b.userData.state = "collected";
+    b.userData.fade = 1;
 
-  setTimeout(()=>{
-    setNextActive();
-    foundLock = false;
-    updateHUD();
-  }, 560);
+    foundCount++;
+    roundSourcesFound++;
+
+    const nowFound = performance.now();
+    combo = (nowFound - lastSourceFoundAt < 10000)
+      ? Math.min(combo + 1, 5)
+      : 1;
+
+    lastSourceFoundAt = nowFound;
+
+    addScore(
+      b.userData.value || 10,
+      "+" + sourceTierLabel(b.userData.tier || 1) + " "
+    );
+
+    playCollectionChime(b.userData.tier || 1);
+  });
+
+  updateHUD("Signal: locked");
 }
 
 
