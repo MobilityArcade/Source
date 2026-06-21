@@ -230,7 +230,7 @@ let sphereRadius = 130;
 const FREEFALL_MODE = true;
 const FREEFALL_RADIUS = 220;
 const FREEFALL_LENGTH = 50;
-const FREEFALL_SPEED = 250;
+const FREEFALL_SPEED = 225;
 const FREEFALL_NEAR_Z = 42;
 const FREEFALL_FAR_Z = -FREEFALL_LENGTH;
 const FREEFALL_DRIFT = 0.24;
@@ -564,7 +564,7 @@ function recycleFreefallBeacon(b){
   if(b.userData.core){
     b.userData.core.material.transparent = false;
     b.userData.core.material.opacity = 1;
-    b.userData.core.scale.setScalar(1);
+    b.userData.core.scale.setScalar(0.7);
   }
 
   if(b.userData.aura){
@@ -2320,8 +2320,7 @@ function foundSource(){
     const d = camera.position.distanceTo(b.position);
     if(d < closestDist){ closestDist = d; closest = b; }
   });
-  if(!closest || closestDist >= (FREEFALL_MODE ? 10.5 : 5.4)) return;
-
+  if(!closest || closestDist >= (FREEFALL_MODE ? 12.1 : 6.2)) return;
   foundLock = true;
   const b = closest;
   b.userData.state = "collected";
