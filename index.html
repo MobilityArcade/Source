@@ -229,8 +229,8 @@ let sphereRadius = 130;
 // from closed-sphere navigation into an endless 3D skydive field.
 const FREEFALL_MODE = true;
 const FREEFALL_RADIUS = 165;
-const FREEFALL_LENGTH = 1850;
-const FREEFALL_SPEED = 150;
+const FREEFALL_LENGTH = 900;
+const FREEFALL_SPEED = 250;
 const FREEFALL_NEAR_Z = 42;
 const FREEFALL_FAR_Z = -FREEFALL_LENGTH;
 const FREEFALL_DRIFT = 0.24;
@@ -545,7 +545,7 @@ function randomPointInSphere(radius){
 
 function randomPointInFreefallField(){
   const angle = Math.random() * Math.PI * 2;
-  const radius = Math.sqrt(Math.random()) * FREEFALL_RADIUS;
+  const radius = Math.sqrt(Math.random()) * (FREEFALL_RADIUS * 0.75);
 
   return new THREE.Vector3(
     Math.cos(angle) * radius,
@@ -725,7 +725,7 @@ function makeInnerParticles(){
   scene.remove(innerParticles);
 }
 
-  const count = 1700;
+  const count = 500;
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
   const world = currentWorld();
@@ -2099,7 +2099,7 @@ function createRound(){
   themeTimer = 0;
   playSourceTheme();
 
-  const count = 400;
+  const count = 2000;
 
   for(let i=0;i<count;i++){
     const pos = FREEFALL_MODE
