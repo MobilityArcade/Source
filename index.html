@@ -543,19 +543,16 @@ function randomPointInSphere(radius){
   );
 }
 
-const lanes = [-25, 0, 25];
+function randomPointInFreefallField(){
 
-return new THREE.Vector3(
-    lanes[Math.floor(Math.random() * lanes.length)],
-    (Math.random() * 2 - 1) * 25,
-    FREEFALL_FAR_Z + Math.random() * FREEFALL_LENGTH
-);
+  const lanes = [-18, 0, 18];
 
   return new THREE.Vector3(
-    Math.cos(angle) * radius,
-    Math.sin(angle) * radius,
+    lanes[Math.floor(Math.random() * lanes.length)],
+    (Math.random() * 2 - 1) * 18,
     FREEFALL_FAR_Z + Math.random() * FREEFALL_LENGTH
   );
+
 }
 
 function recycleFreefallBeacon(b){
