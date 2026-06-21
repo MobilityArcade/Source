@@ -229,7 +229,7 @@ let sphereRadius = 130;
 // from closed-sphere navigation into an endless 3D skydive field.
 const FREEFALL_MODE = true;
 const FREEFALL_RADIUS = 165;
-const FREEFALL_LENGTH = 900;
+const FREEFALL_LENGTH = 1200;
 const FREEFALL_SPEED = 250;
 const FREEFALL_NEAR_Z = 42;
 const FREEFALL_FAR_Z = -FREEFALL_LENGTH;
@@ -725,7 +725,7 @@ function makeInnerParticles(){
   scene.remove(innerParticles);
 }
 
-  const count = 100;
+  const count = 400;
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
   const world = currentWorld();
