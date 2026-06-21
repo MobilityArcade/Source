@@ -724,7 +724,7 @@ function makeInnerParticles(){
   scene.remove(innerParticles);
 }
 
-  const count = 2000;
+  const count = 3000;
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
   const world = currentWorld();
@@ -2340,7 +2340,7 @@ function foundSource(){
   combo = (nowFound - lastSourceFoundAt < 10000) ? Math.min(combo + 1, 5) : 1;
   lastSourceFoundAt = nowFound;
   addScore(b.userData.value || 100, "+" + sourceTierLabel(b.userData.tier || 1) + " ");
-  discoverySound();
+  // discoverySound();();
   playCollectionChime(b.userData.tier || 1);
   vibrate([30,40,70]);
 
