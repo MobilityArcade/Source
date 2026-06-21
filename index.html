@@ -228,12 +228,12 @@ let sphereRadius = 130;
 // Keeps the original Find The Source visual style, but changes gameplay
 // from closed-sphere navigation into an endless 3D skydive field.
 const FREEFALL_MODE = true;
-const FREEFALL_RADIUS = 300;
+const FREEFALL_RADIUS = 150;
 const FREEFALL_LENGTH = 50;
 const FREEFALL_SPEED = 100;
 const FREEFALL_NEAR_Z = 42;
 const FREEFALL_FAR_Z = -FREEFALL_LENGTH;
-const FREEFALL_DRIFT = 0.24;
+const FREEFALL_DRIFT = 0.18;
 const FREEFALL_FRICTION = 0.88;
 let driftVelocityX = 0;
 let driftVelocityY = 0;
@@ -2139,7 +2139,7 @@ function createRound(){
   themeTimer = 0;
   playSourceTheme();
 
-  const count = 600;
+  const count = 300;
 
   for(let i=0;i<count;i++){
   const pos = FREEFALL_MODE
@@ -2175,7 +2175,7 @@ createMeteorStream();
 createMeteorStream();
 createMeteorStream();
 
-for(let i=0;i<8;i++){
+for(let i=0;i<6;i++)
 
   const centerX = (Math.random()-0.5)*180;
   const centerY = (Math.random()-0.5)*180;
@@ -2185,7 +2185,7 @@ for(let i=0;i<8;i++){
     centerX,
     centerY,
     centerZ,
-    40
+    20
   );
 }
 
