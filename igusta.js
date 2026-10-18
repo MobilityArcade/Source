@@ -1,0 +1,32 @@
+"use strict";
+const $=id=>document.getElementById(id);
+const colors={dance:'#e92931',stretch:'#075bdb',flow:'#008e4a',play:'#d6a000'};
+const modeNames={en:{dance:'DANCE',stretch:'STRETCH',flow:'FLOW',play:'PLAY'},es:{dance:'BAILE',stretch:'ESTIRAR',flow:'FLUIR',play:'JUEGO'}};
+let mode='dance',duration=30,sequence=[],cueIndex=0,elapsedBefore=0,startedAt=0,paused=false,halfPlayed=false,interval=null,countdownTimer=null,runId=0,audioCtx=null;
+const lang=()=>$('language').value;
+const tr=(en,es)=>lang()==='es'?es:en;
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('hidden',s.id!==id))}
+function fmt(s){s=Math.floor(Math.max(0,s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function tone(freq,len=.12){if($('sound').value==='off')return;try{audioCtx??=new(window.AudioContext||window.webkitAudioContext)();audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.10,audioCtx.currentTime+.015);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+len);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+len+.02)}catch(e){}}
+function sound(which){if(which==='start'){tone(620,.15);setTimeout(()=>tone(930,.20),175)}if(which==='half'){tone(780,.13)}if(which==='end'){tone(590,.2);setTimeout(()=>tone(410,.3),235)}}
+function shuffle(items){const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function paceSeconds(){const setting=$('pace').value;const speeds={dance:[2.6,4,6],stretch:[5,8,12],flow:[4,6,9],play:[2.8,4.5,7]};return speeds[mode][setting==='quick'?0:setting==='relaxed'?2:1]}
+function makeSequence(){const bank=window.MOVEMENT_WORDS[mode];const cards=[];let at=0,previous='';while(at<duration){let deck=shuffle(bank);if(deck.length>1&&deck[0][0]===previous)deck.push(deck.shift());for(const card of deck){if(at>=duration)break;cards.push({at,word:card[lang()==='es'?1:0]});previous=card[0];at+=paceSeconds()}}return cards}
+function pick(m){mode=m;document.querySelector('.shell').style.setProperty('--theme',colors[m]);$('modeTitle').textContent=modeNames[lang()][m];show('setup')}
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>pick(b.dataset.mode)));
+$('back').onclick=()=>show('home');
+$('language').onchange=()=>{document.documentElement.lang=lang();$('modeTitle').textContent=modeNames[lang()][mode];$('durationLabel').textContent=tr('Duration','Duración');$('languageLabel').textContent=tr('Language','Idioma');$('paceLabel').textContent=tr('Card pace','Ritmo de tarjetas');$('soundLabel').textContent=tr('Sound cues','Señales sonoras');$('start').textContent=tr('START →','EMPEZAR →');$('hint').textContent=tr('Read the word. Move your way.','Lee la palabra. Muévete a tu manera.');$('pace').options[0].textContent=tr('Quick','Rápido');$('pace').options[1].textContent=tr('Steady','Normal');$('pace').options[2].textContent=tr('Relaxed','Tranquilo');$('sound').options[0].textContent=tr('On','Sí');$('sound').options[1].textContent=tr('Off','No');$('duration').options[0].textContent=tr('30 seconds','30 segundos');$('duration').options[1].textContent=tr('1 minute','1 minuto');$('duration').options[2].textContent=tr('3 minutes','3 minutos')};
+function cancel(){runId++;clearInterval(interval);clearTimeout(countdownTimer);interval=null;countdownTimer=null}
+function showCard(){const card=sequence[cueIndex];if(!card)return;$('command').textContent=card.word;requestAnimationFrame(fitWord)}
+function fitWord(){const el=$('command');if($('round').classList.contains('hidden'))return;const max=window.matchMedia('(orientation:landscape)').matches?Math.min(innerHeight*.24,160):Math.min(innerWidth*.17,120);let size=Math.max(30,max);el.style.fontSize=size+'px';while(size>25&&(el.scrollWidth>el.clientWidth+2||el.scrollHeight>el.clientHeight+2)){size-=2;el.style.fontSize=size+'px'}}
+function finish(){cancel();$('elapsed').textContent=fmt(duration);$('progress').style.width='100%';sound('end');$('doneTitle').textContent=tr('NICE MOVES!','¡BUENOS MOVIMIENTOS!');$('doneDetail').textContent=tr('YOUR MOVE. YOUR WAY.','MUÉVETE A TU MANERA.');$('again').textContent=tr('PLAY AGAIN ↻','OTRA VEZ ↻');show('done')}
+function tick(){if(paused)return;const elapsed=Math.min(duration,elapsedBefore+(performance.now()-startedAt)/1000);$('elapsed').textContent=fmt(elapsed);$('progress').style.width=elapsed/duration*100+'%';if(elapsed>=duration){finish();return}if(!halfPlayed&&elapsed>=duration/2){halfPlayed=true;sound('half')}while(cueIndex+1<sequence.length&&sequence[cueIndex+1].at<=elapsed){cueIndex++;showCard()}}
+function startRound(){cancel();duration=Number($('duration').value);sequence=makeSequence();cueIndex=0;elapsedBefore=0;paused=false;halfPlayed=false;$('total').textContent=fmt(duration);$('elapsed').textContent='0:00';$('progress').style.width='0%';$('roundMode').textContent=modeNames[lang()][mode];$('pause').textContent=tr('PAUSE','PAUSA');$('next').textContent=tr('NEXT →','SIGUIENTE →');$('stop').textContent=tr('END','FIN');show('round');const token=runId;let n=3;function count(){if(token!==runId)return;if(n>0){$('command').textContent=String(n);$('command').style.fontSize='';tone(520+(3-n)*100,.10);n--;countdownTimer=setTimeout(count,1000)}else{sound('start');startedAt=performance.now();showCard();interval=setInterval(tick,80)}}count()}
+$('start').onclick=startRound;
+$('pause').onclick=()=>{if(!interval)return;if(!paused){elapsedBefore=Math.min(duration,elapsedBefore+(performance.now()-startedAt)/1000);paused=true;$('pause').textContent=tr('RESUME','SEGUIR');$('command').textContent=tr('PAUSED','PAUSA');fitWord()}else{paused=false;startedAt=performance.now();$('pause').textContent=tr('PAUSE','PAUSA');showCard()}};
+$('next').onclick=()=>{if(!interval||paused)return;if(cueIndex+1<sequence.length){cueIndex++;showCard()}};
+$('stop').onclick=()=>{cancel();show('setup')};$('again').onclick=startRound;$('homeBtn').onclick=()=>{cancel();show('home')};
+window.addEventListener('resize',fitWord);
+window.addEventListener('pagehide',cancel);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&interval&&!paused)$('pause').click()});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('round').classList.contains('hidden'))$('stop').click();if(e.key==='ArrowRight'&&!$('round').classList.contains('hidden'))$('next').click()});
