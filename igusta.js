@@ -40,3 +40,17 @@ $('next').onclick=()=>{if(!interval||paused)return;if(cueIndex+1<sequence.length
 $('end').onclick=()=>{cancel();show('setup')};$('again').onclick=startRound;$('homeBtn').onclick=()=>{cancel();show('home')};
 $('language').onchange=()=>{document.documentElement.lang=lang();$('start').innerHTML=tr('START DANZE <b>→</b>','EMPEZAR <b>→</b>');$('pause').textContent=tr('PAUSE','PAUSA');$('next').textContent=tr('NEXT →','SIGUIENTE →');$('end').textContent=tr('END','FIN');$('again').textContent=tr('PLAY AGAIN ↻','OTRA VEZ ↻')};
 window.addEventListener('resize',fitWord);window.addEventListener('pagehide',cancel);document.addEventListener('visibilitychange',()=>{if(document.hidden&&interval&&!paused)$('pause').click()});window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('round').classList.contains('hidden'))$('end').click();if(e.key==='ArrowRight'&&!$('round').classList.contains('hidden'))$('next').click()});
+
+// V7 background choice: remember locally, no network or AI connection.
+(function(){
+ const selector=document.getElementById('backgroundStyle');
+ const game=document.getElementById('game');
+ if(!selector||!game)return;
+ let saved='flow';
+ try{const v=localStorage.getItem('flashDanzeBackground');if(['still','flow','burst'].includes(v))saved=v}catch(e){}
+ const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+ if(saved==='flow'&&motion?.matches){saved='still'}
+ function apply(v){if(!['still','flow','burst'].includes(v))v='flow';selector.value=v;game.dataset.background=v;window.NeonBurst?.setActive?.(v==='burst');try{localStorage.setItem('flashDanzeBackground',v)}catch(e){}}
+ selector.addEventListener('change',()=>apply(selector.value));
+ apply(saved);
+})();
