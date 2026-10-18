@@ -95,3 +95,10 @@
 .game[data-background="rush"] .worldEffects,.game[data-background="lightning"] .worldEffects{opacity:0}
 .game[data-background="rush"] .haze{opacity:.65}
 .game[data-background="lightning"] .haze{opacity:.85;filter:blur(44px)}
+
+/* V10.1: two genuinely distinct canvas worlds, not burst-speed variants. */
+.arcadeWorld{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:2}
+.game[data-background="grid"] .arcadeWorld,.game[data-background="chaos"] .arcadeWorld{display:block}
+.game[data-background="grid"] .neonBurst,.game[data-background="chaos"] .neonBurst,.game[data-background="grid"] .ambientFlow,.game[data-background="chaos"] .ambientFlow{display:none}
+.game[data-background="grid"] .worldEffects,.game[data-background="chaos"] .worldEffects{opacity:0}
+.game[data-background="grid"] .haze,.game[data-background="chaos"] .haze,.game[data-background="grid"] .floor,.game[data-background="chaos"] .floor,.game[data-background="grid"] .sparks,.game[data-background="chaos"] .sparks{display:none}
