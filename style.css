@@ -56,3 +56,35 @@
 /* V8.1: clearer home-screen tagline */
 #home .tag{font-size:clamp(17px,2.5vw,27px);letter-spacing:.20em;line-height:1.35;font-weight:900;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7),0 0 15px rgba(255,255,255,.25);max-width:94%;}
 @media(max-width:600px){#home .tag{font-size:clamp(16px,4vw,22px);letter-spacing:.15em;}}
+
+
+/* V9: eight independently selectable worlds and eight font modes. */
+.worldEffects{position:absolute;inset:-12%;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .5s ease;filter:blur(25px)}
+.worldLayer{position:absolute;inset:-20%;background:radial-gradient(ellipse at 20% 70%,var(--world-a,#ff169d) 0%,transparent 42%),radial-gradient(ellipse at 78% 24%,var(--world-b,#00caff) 0%,transparent 46%);opacity:.47;animation:worldDrift 13s ease-in-out infinite alternate;mix-blend-mode:screen}
+.worldLayer.second{animation:worldDrift2 17s ease-in-out infinite alternate;opacity:.35;transform:rotate(25deg)}
+.worldPattern{position:absolute;inset:-20%;opacity:.3;animation:worldSpin 18s linear infinite}
+@keyframes worldDrift{0%{transform:translate(-9%,4%) scale(.95) rotate(-8deg)}100%{transform:translate(12%,-8%) scale(1.2) rotate(16deg)}}
+@keyframes worldDrift2{0%{transform:translate(11%,12%) scale(1.12) rotate(22deg)}100%{transform:translate(-13%,-10%) scale(.88) rotate(-16deg)}}
+@keyframes worldSpin{to{transform:rotate(360deg)}}
+.game[data-background="aurora"]{--world-a:#00f4c8;--world-b:#8149ff}
+.game[data-background="tide"]{--world-a:#008aff;--world-b:#00e8d5}
+.game[data-background="dusk"]{--world-a:#ff875a;--world-b:#8d4bff}
+.game[data-background="prism"]{--world-a:#ff00aa;--world-b:#13dfff}
+.game[data-background="pulse"]{--world-a:#ff3366;--world-b:#ffcb00}
+.game[data-background="comet"]{--world-a:#6c34ff;--world-b:#08cfff}
+.game[data-background="aurora"] .worldEffects,.game[data-background="tide"] .worldEffects,.game[data-background="dusk"] .worldEffects,.game[data-background="prism"] .worldEffects,.game[data-background="pulse"] .worldEffects,.game[data-background="comet"] .worldEffects{opacity:1}
+.game[data-background="aurora"] .worldLayer,.game[data-background="tide"] .worldLayer,.game[data-background="dusk"] .worldLayer{animation-duration:22s;opacity:.28}
+.game[data-background="aurora"] .worldLayer.second,.game[data-background="tide"] .worldLayer.second,.game[data-background="dusk"] .worldLayer.second{animation-duration:27s;opacity:.23}
+.game[data-background="prism"] .worldPattern{background:repeating-conic-gradient(from 0deg at 50% 60%,transparent 0deg 13deg,#ff24a788 13deg 14deg,transparent 14deg 28deg,#00dfff88 28deg 29deg,transparent 29deg 44deg);filter:blur(2px)}
+.game[data-background="pulse"] .worldPattern{inset:10%;border:clamp(8px,3vw,40px) solid #ff26a788;border-radius:50%;box-shadow:0 0 90px #ff0a9e88,inset 0 0 100px #ffbd0088;animation:worldPulse 2.4s ease-in-out infinite}
+@keyframes worldPulse{50%{transform:scale(1.3);opacity:.08}}
+.game[data-background="comet"] .worldPattern{background:repeating-linear-gradient(135deg,transparent 0 9%,#05eaff66 9.3% 9.7%,transparent 10% 19%,#fa17ad66 19.2% 19.6%,transparent 20% 31%);animation:cometSlide 3.5s linear infinite}
+@keyframes cometSlide{to{transform:translate(12%,12%)}}
+.game[data-background="aurora"] .ambientFlow,.game[data-background="tide"] .ambientFlow,.game[data-background="dusk"] .ambientFlow,.game[data-background="prism"] .ambientFlow,.game[data-background="pulse"] .ambientFlow,.game[data-background="comet"] .ambientFlow{display:none}
+.game[data-background="aurora"] .neonBurst,.game[data-background="tide"] .neonBurst,.game[data-background="dusk"] .neonBurst,.game[data-background="prism"] .neonBurst,.game[data-background="pulse"] .neonBurst,.game[data-background="comet"] .neonBurst{display:none}
+.game[data-background="aurora"] .haze,.game[data-background="tide"] .haze,.game[data-background="dusk"] .haze,.game[data-background="prism"] .haze,.game[data-background="pulse"] .haze,.game[data-background="comet"] .haze,.game[data-background="aurora"] .floor,.game[data-background="tide"] .floor,.game[data-background="dusk"] .floor,.game[data-background="prism"] .floor,.game[data-background="pulse"] .floor,.game[data-background="comet"] .floor{display:none}
+.game[data-font="block"] #command:not(.counting){font-family:Impact,'Arial Black',sans-serif;font-weight:1000;font-style:normal;letter-spacing:-.06em;transform:none}
+.game[data-font="retro"] #command:not(.counting){font-family:'Courier New',monospace;font-weight:1000;font-style:normal;letter-spacing:-.10em;transform:skew(-7deg);text-shadow:5px 6px 0 var(--cue-glow),0 0 25px var(--cue-glow)}
+.game[data-font="outline"] #command:not(.counting){font-family:Impact,'Arial Black',sans-serif;font-weight:1000;font-style:italic;color:#07051b;-webkit-text-stroke:clamp(2px,.5vw,6px) var(--cue-fill);text-shadow:0 0 15px var(--cue-glow),0 0 34px var(--cue-glow)}
+.game[data-font="comic"] #command:not(.counting){font-family:'Trebuchet MS',Arial,sans-serif;font-weight:1000;font-style:italic;letter-spacing:-.065em;transform:rotate(-3deg) skew(-7deg);text-shadow:7px 8px 0 #19002f,0 0 24px var(--cue-glow)}
+@media(prefers-reduced-motion:reduce){.worldLayer,.worldPattern{animation:none!important;transition:none!important}}
