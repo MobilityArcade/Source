@@ -88,3 +88,10 @@
 .game[data-font="outline"] #command:not(.counting){font-family:Impact,'Arial Black',sans-serif;font-weight:1000;font-style:italic;color:#07051b;-webkit-text-stroke:clamp(2px,.5vw,6px) var(--cue-fill);text-shadow:0 0 15px var(--cue-glow),0 0 34px var(--cue-glow)}
 .game[data-font="comic"] #command:not(.counting){font-family:'Trebuchet MS',Arial,sans-serif;font-weight:1000;font-style:italic;letter-spacing:-.065em;transform:rotate(-3deg) skew(-7deg);text-shadow:7px 8px 0 #19002f,0 0 24px var(--cue-glow)}
 @media(prefers-reduced-motion:reduce){.worldLayer,.worldPattern{animation:none!important;transition:none!important}}
+
+/* V10: two new kinetic neon worlds; canvas handles motion, CSS maintains text legibility. */
+.game[data-background="rush"] .ambientFlow,.game[data-background="lightning"] .ambientFlow{display:none}
+.game[data-background="rush"] .neonBurst,.game[data-background="lightning"] .neonBurst{display:block}
+.game[data-background="rush"] .worldEffects,.game[data-background="lightning"] .worldEffects{opacity:0}
+.game[data-background="rush"] .haze{opacity:.65}
+.game[data-background="lightning"] .haze{opacity:.85;filter:blur(44px)}
