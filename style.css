@@ -52,3 +52,7 @@
 .game[data-font="power"] #command:not(.counting){font-family:'Arial Black',Arial,system-ui,sans-serif;font-weight:1000;font-style:normal;letter-spacing:-.055em;transform:none}
 .game[data-font="neon"] #command:not(.counting){font-family:'Trebuchet MS',Verdana,system-ui,sans-serif;font-weight:900;font-style:normal;letter-spacing:.015em;transform:none;-webkit-text-stroke:clamp(1px,.13vw,2px) var(--cue-stroke,#00eaff)}
 @media(prefers-reduced-motion:reduce){.ambientFlow i{animation:none!important}#command:not(.counting){transition:none}}
+
+/* V8.1: clearer home-screen tagline */
+#home .tag{font-size:clamp(17px,2.5vw,27px);letter-spacing:.20em;line-height:1.35;font-weight:900;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7),0 0 15px rgba(255,255,255,.25);max-width:94%;}
+@media(max-width:600px){#home .tag{font-size:clamp(16px,4vw,22px);letter-spacing:.15em;}}
