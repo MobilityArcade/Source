@@ -48,10 +48,10 @@ window.addEventListener('resize',fitWord);window.addEventListener('pagehide',can
  const game=document.getElementById('game');
  if(!selector||!game)return;
  let saved='flow';
- try{const v=localStorage.getItem('flashDanzeBackground');if(['still','flow','burst','aurora','tide','dusk','prism','pulse','comet'].includes(v))saved=v}catch(e){}
+ try{const v=localStorage.getItem('flashDanzeBackground');if(['still','flow','burst','rush','lightning','dusk','prism','pulse','comet'].includes(v))saved=v}catch(e){}
  const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
  if(saved==='flow'&&motion?.matches){saved='still'}
- function apply(v){if(!['still','flow','burst','aurora','tide','dusk','prism','pulse','comet'].includes(v))v='flow';selector.value=v;game.dataset.background=v;window.NeonBurst?.setActive?.(v==='burst');try{localStorage.setItem('flashDanzeBackground',v)}catch(e){}}
+ function apply(v){if(!['still','flow','burst','rush','lightning','dusk','prism','pulse','comet'].includes(v))v='flow';selector.value=v;game.dataset.background=v;window.NeonBurst?.setActive?.(['burst','rush','lightning'].includes(v),v);try{localStorage.setItem('flashDanzeBackground',v)}catch(e){}}
  selector.addEventListener('change',()=>apply(selector.value));
  apply(saved);
 })();
