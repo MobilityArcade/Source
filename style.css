@@ -34,3 +34,21 @@
 .game[data-background="still"] .haze,.game[data-background="still"] .floor,.game[data-background="still"] .sparks,.game[data-background="flow"] .haze,.game[data-background="flow"] .floor,.game[data-background="flow"] .sparks{display:none}
 .game[data-background="burst"] .neonBurst{display:block}
 @media(prefers-reduced-motion:reduce){.ambientFlow i{animation:none!important}.ambientFlow{transition:none}}
+
+/* V8 — noticeably living lava-lamp: four drifting, deforming soft light masses. */
+.game[data-background="flow"] .ambientFlow{filter:blur(clamp(26px,5vw,72px));opacity:1}
+.ambientFlow i{opacity:.84;transform-origin:center;animation-timing-function:ease-in-out!important;animation-direction:alternate!important}
+.ambientFlow i:nth-child(1){width:65%;height:67%;left:-9%;top:27%;animation:lavaOneV8 9s ease-in-out infinite alternate}
+.ambientFlow i:nth-child(2){width:64%;height:70%;right:-11%;top:-9%;animation:lavaTwoV8 12s ease-in-out infinite alternate}
+.ambientFlow i:nth-child(3){width:53%;height:67%;left:26%;top:20%;animation:lavaThreeV8 11s ease-in-out infinite alternate}
+.ambientFlow i:nth-child(4){width:49%;height:57%;right:0%;bottom:-15%;animation:lavaFourV8 10s ease-in-out infinite alternate}
+@keyframes lavaOneV8{0%{transform:translate(-14%,19%) scale(.8,1.22) rotate(-15deg)}50%{transform:translate(18%,-13%) scale(1.27,.82) rotate(12deg)}100%{transform:translate(40%,-28%) scale(.95,1.36) rotate(30deg)}}
+@keyframes lavaTwoV8{0%{transform:translate(15%,-14%) scale(1.3,.85) rotate(16deg)}50%{transform:translate(-23%,24%) scale(.8,1.32) rotate(-19deg)}100%{transform:translate(-39%,37%) scale(1.16,.9) rotate(-32deg)}}
+@keyframes lavaThreeV8{0%{transform:translate(-26%,30%) scale(.9,1.28) rotate(-20deg)}50%{transform:translate(23%,-19%) scale(1.34,.82) rotate(15deg)}100%{transform:translate(12%,-33%) scale(.85,1.27) rotate(28deg)}}
+@keyframes lavaFourV8{0%{transform:translate(23%,23%) scale(1.2,.84) rotate(20deg)}50%{transform:translate(-28%,-21%) scale(.8,1.36) rotate(-16deg)}100%{transform:translate(-38%,-42%) scale(1.24,.86) rotate(-30deg)}}
+/* Font personalities apply only to movement cues, not countdown or interface. */
+#command:not(.counting){color:var(--cue-fill,#fff);text-shadow:0 0 12px var(--cue-glow,#ff149f),0 0 34px var(--cue-glow,#ff149f),4px 5px 0 #170725;transition:color .16s ease,text-shadow .16s ease}
+.game[data-font="street"] #command:not(.counting){font-family:Impact,'Arial Black',system-ui,sans-serif;font-weight:900;font-style:italic;letter-spacing:-.035em;transform:skew(-5deg)}
+.game[data-font="power"] #command:not(.counting){font-family:'Arial Black',Arial,system-ui,sans-serif;font-weight:1000;font-style:normal;letter-spacing:-.055em;transform:none}
+.game[data-font="neon"] #command:not(.counting){font-family:'Trebuchet MS',Verdana,system-ui,sans-serif;font-weight:900;font-style:normal;letter-spacing:.015em;transform:none;-webkit-text-stroke:clamp(1px,.13vw,2px) var(--cue-stroke,#00eaff)}
+@media(prefers-reduced-motion:reduce){.ambientFlow i{animation:none!important}#command:not(.counting){transition:none}}
