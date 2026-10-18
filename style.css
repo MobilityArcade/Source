@@ -15,3 +15,22 @@
 #command.flashEnter{animation:wordPunch .34s cubic-bezier(.16,1.2,.3,1) both}
 @keyframes wordPunch{0%{opacity:0;filter:blur(8px);scale:1.23}65%{opacity:1;filter:blur(0);scale:.98}100%{opacity:1;scale:1}}
 @media(prefers-reduced-motion:reduce){#command.flashEnter{animation:none}.stage .floor,.stage .haze{animation:none}}
+
+/* V7 — selectable visual environments. Word and interface remain unchanged. */
+.stage{background:radial-gradient(ellipse at 50% 78%,#70004c 0%,#190935 44%,#071334 73%,#04020b 100%)}
+.ambientFlow{position:absolute;inset:-18%;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .55s ease;filter:blur(clamp(45px,8vw,115px));transform:translateZ(0)}
+.ambientFlow i{position:absolute;display:block;border-radius:50%;will-change:transform;mix-blend-mode:screen;opacity:.55}
+.ambientFlow i:nth-child(1){width:60%;height:64%;left:-8%;top:35%;background:radial-gradient(ellipse,#ff0091aa 0%,#a7007a55 43%,transparent 74%);animation:lavaOne 25s ease-in-out infinite alternate}
+.ambientFlow i:nth-child(2){width:57%;height:76%;right:-12%;top:0%;background:radial-gradient(ellipse,#1255ffbb 0%,#2732b866 45%,transparent 74%);animation:lavaTwo 30s ease-in-out infinite alternate}
+.ambientFlow i:nth-child(3){width:48%;height:62%;left:30%;top:24%;background:radial-gradient(ellipse,#aa1fbd77 0%,#ac146944 45%,transparent 75%);animation:lavaThree 33s ease-in-out infinite alternate}
+.ambientFlow i:nth-child(4){width:44%;height:50%;right:5%;bottom:-12%;background:radial-gradient(ellipse,#e914a077 0%,#3821c755 44%,transparent 75%);animation:lavaFour 29s ease-in-out infinite alternate}
+@keyframes lavaOne{to{transform:translate(20%, -20%) scale(1.22)}}
+@keyframes lavaTwo{to{transform:translate(-24%, 24%) scale(1.16)}}
+@keyframes lavaThree{to{transform:translate(-20%, -22%) scale(1.25)}}
+@keyframes lavaFour{to{transform:translate(18%, -25%) scale(1.18)}}
+.game[data-background="flow"] .ambientFlow{opacity:1}
+.game[data-background="flow"] .neonBurst,.game[data-background="still"] .neonBurst{display:none}
+.game[data-background="burst"] .ambientFlow,.game[data-background="still"] .ambientFlow{display:none}
+.game[data-background="still"] .haze,.game[data-background="still"] .floor,.game[data-background="still"] .sparks,.game[data-background="flow"] .haze,.game[data-background="flow"] .floor,.game[data-background="flow"] .sparks{display:none}
+.game[data-background="burst"] .neonBurst{display:block}
+@media(prefers-reduced-motion:reduce){.ambientFlow i{animation:none!important}.ambientFlow{transition:none}}
