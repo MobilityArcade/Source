@@ -10,7 +10,26 @@ function shuffle(items){const a=[...items];for(let i=a.length-1;i>0;i--){const j
 function paceSeconds(){return {quick:2.6,steady:4,chill:6}[$('pace').value]||4}
 function makeSequence(){const bank=window.MOVEMENT_WORDS.dance;const cards=[];let at=0,previous='';while(at<duration){const deck=shuffle(bank);if(deck.length>1&&deck[0][0]===previous)deck.push(deck.shift());for(const card of deck){if(at>=duration)break;cards.push({at,word:card[lang()==='es'?1:0]});previous=card[0];at+=paceSeconds()}}return cards}
 function cancel(){runId++;clearInterval(interval);clearTimeout(countdownTimer);interval=null;countdownTimer=null}
-function fitWord(){const el=$('command');if($('round').classList.contains('hidden')||el.classList.contains('counting'))return;let size=Math.min(innerWidth*.16,innerHeight*.26,190);el.style.fontSize=size+'px';while(size>26&&(el.scrollWidth>el.clientWidth+2||el.scrollHeight>el.clientHeight+2)){size-=3;el.style.fontSize=size+'px'}}
+function fitWord(){
+ const el=$('command');
+ if($('round').classList.contains('hidden')||el.classList.contains('counting'))return;
+ const zone=el.parentElement;
+ const word=el.textContent.trim();
+ const availableWidth=zone.clientWidth*.965;
+ const availableHeight=zone.clientHeight*.85;
+ if(!word||!availableWidth||!availableHeight)return;
+ const ctx=fitWord.ctx||(fitWord.ctx=document.createElement('canvas').getContext('2d'));
+ const family=getComputedStyle(el).fontFamily;
+ const weight=getComputedStyle(el).fontWeight;
+ let lo=24,hi=Math.max(70,Math.min(availableHeight*.95,innerWidth*.8,600));
+ for(let i=0;i<18;i++){
+   const mid=(lo+hi)/2;
+   ctx.font=`${weight} ${mid}px ${family}`;
+   const width=ctx.measureText(word).width + Math.max(0,word.length-1)*mid*.01;
+   if(width<=availableWidth && mid*1.15<=availableHeight)lo=mid;else hi=mid;
+ }
+ el.style.fontSize=Math.floor(lo)+'px';
+}
 function showCard(){const card=sequence[cueIndex];if(!card)return;const el=$('command');el.classList.remove('counting','go');el.textContent=card.word;requestAnimationFrame(fitWord)}
 function finish(){cancel();$('progress').style.width='100%';sound('end');$('finishTitle').textContent=tr('YOU DID IT!','¡LO LOGRASTE!');show('done')}
 function tick(){if(paused)return;const elapsed=Math.min(duration,elapsedBefore+(performance.now()-startedAt)/1000);$('remaining').textContent=fmt(duration-elapsed);$('progress').style.width=elapsed/duration*100+'%';if(elapsed>=duration){finish();return}if(!halfPlayed&&elapsed>=duration/2){halfPlayed=true;sound('half')}while(cueIndex+1<sequence.length&&sequence[cueIndex+1].at<=elapsed){cueIndex++;showCard();if(cueIndex%5===0&&Math.random()<.45)sound('coin')}}
