@@ -175,3 +175,29 @@ html,body,.game{background:#02020a!important}
 @keyframes dhBall{0%,100%{opacity:.08}24%{opacity:.21}49%{opacity:.10}73%{opacity:.25}}
 @keyframes dhFloor{0%,100%{opacity:.10}30%{opacity:.19}58%{opacity:.11}80%{opacity:.21}}
 @media(prefers-reduced-motion:reduce){#danceHallLights .dh-neon-pink,#danceHallLights .dh-neon-blue,#danceHallLights .dh-disco,#danceHallLights .dh-reflection{animation:none!important;opacity:.09}}
+
+/* V18: visible but slow and comfortable cinemagraph lighting — Dance Hall only. */
+#danceHallLights{display:block;isolation:isolate;mix-blend-mode:screen}
+#danceHallLights .v18PinkNeon{opacity:.25;animation:v18Pink 8.3s ease-in-out infinite}
+#danceHallLights .v18CyanNeon{opacity:.27;animation:v18Cyan 9.7s ease-in-out infinite}
+#danceHallLights .v18BallGlints{opacity:.72;transform-origin:831px 210px;animation:v18Ball 12s ease-in-out infinite alternate}
+#danceHallLights .v18Spark{opacity:0;transform-box:fill-box;transform-origin:center;animation:v18Spark 8s ease-in-out infinite}
+#danceHallLights .v18SparkB{animation-delay:-2.8s}
+#danceHallLights .v18SparkC{animation-delay:-5.2s}
+#danceHallLights .v18FloorPink{opacity:.54;animation:v18FloorPink 11s ease-in-out infinite alternate}
+#danceHallLights .v18FloorCyan{opacity:.58;animation:v18FloorCyan 12.5s ease-in-out infinite alternate}
+#danceHallLights .v18FloorSweep{opacity:.13;animation:v18Sweep 14s ease-in-out infinite}
+#danceHallLights .v18Fog{opacity:0;transform-box:view-box;transform-origin:center;animation:v18FogLeft 9s ease-out infinite}
+#danceHallLights .v18FogRight{animation-name:v18FogRight;animation-delay:-3.8s}
+#danceHallLights .v18FogLate{animation-delay:-5s}
+#danceHallLights .v18FogRight.v18FogLate{animation-delay:-8s}
+@keyframes v18Pink{0%,100%{opacity:.24}18%{opacity:.44}22%{opacity:.31}24%{opacity:.50}26%{opacity:.29}55%{opacity:.41}76%{opacity:.27}}
+@keyframes v18Cyan{0%,100%{opacity:.26}28%{opacity:.48}52%{opacity:.32}72%{opacity:.53}}
+@keyframes v18Ball{0%{transform:translateX(-24px);opacity:.4}50%{opacity:.95}100%{transform:translateX(24px);opacity:.65}}
+@keyframes v18Spark{0%,8%,35%,100%{opacity:0;scale:.55}16%{opacity:.94;scale:1.15}23%{opacity:.42;scale:.8}}
+@keyframes v18FloorPink{0%{transform:translate(-160px,10px);opacity:.24}55%{opacity:.65}100%{transform:translate(180px,-6px);opacity:.48}}
+@keyframes v18FloorCyan{0%{transform:translate(140px,-8px);opacity:.4}50%{opacity:.72}100%{transform:translate(-150px,8px);opacity:.28}}
+@keyframes v18Sweep{0%,100%{transform:translateX(-600px);opacity:0}20%{opacity:.14}50%{opacity:.3}80%{opacity:.12}95%{transform:translateX(600px);opacity:0}}
+@keyframes v18FogLeft{0%{transform:translate(0,14px) scale(.5,.55);opacity:0}18%{opacity:.54}55%{opacity:.68}100%{transform:translate(-95px,-85px) scale(1.9,1.65);opacity:0}}
+@keyframes v18FogRight{0%{transform:translate(0,14px) scale(.5,.55);opacity:0}18%{opacity:.54}55%{opacity:.68}100%{transform:translate(95px,-85px) scale(1.9,1.65);opacity:0}}
+@media(prefers-reduced-motion:reduce){#danceHallLights .v18PinkNeon,#danceHallLights .v18CyanNeon,#danceHallLights .v18BallGlints,#danceHallLights .v18Spark,#danceHallLights .v18FloorPink,#danceHallLights .v18FloorCyan,#danceHallLights .v18FloorSweep,#danceHallLights .v18Fog{animation:none!important}#danceHallLights .v18Fog,#danceHallLights .v18Spark,#danceHallLights .v18FloorSweep{opacity:0!important}}
