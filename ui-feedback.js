@@ -1,69 +1,59 @@
-/* FLASH DANZE V24: tactile UI cues + custom scrollable option menus. */
+/* FLASH DANZE V26: one tactile category-and-choice wheel. */
 (()=>{'use strict';
- let ctx=null,lastTick=0;const C=window.AudioContext||window.webkitAudioContext;
- function enabled(){return document.getElementById('soundMode')?.value!=='off'}
- function ensure(){if(!C||!enabled())return null;try{ctx=ctx||new C();if(ctx.state==='suspended')ctx.resume().catch(()=>{});return ctx}catch(e){return null}}
- // Short filtered percussive transients: restrained mechanical-style ticks/clicks.
- function cue(kind){const c=ensure();if(!c||c.state!=='running')return;const now=c.currentTime;
- const tick=kind==='tick',freq=tick?920:kind==='back'?480:680,duration=tick?.032:.055;
- const oscillator=c.createOscillator(),gain=c.createGain(),filter=c.createBiquadFilter();
- oscillator.type='triangle';oscillator.frequency.setValueAtTime(freq,now);oscillator.frequency.exponentialRampToValueAtTime(freq*.55,now+duration);
- filter.type='lowpass';filter.frequency.value=tick?1850:1400;
- gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(tick?.038:.068,now+.003);
- gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
- oscillator.connect(filter).connect(gain).connect(c.destination);oscillator.start(now);oscillator.stop(now+duration+.01);
+const root=document.getElementById('setup');if(!root)return;
+const original=root.querySelector('.options');const start=document.getElementById('start');
+const controls=[...original.querySelectorAll('.option select')];
+const labels=['DURATION','CARD PACE','BACKGROUND','FONT STYLE','WORD COLOR','SOUND','LANGUAGE'];
+const C=window.AudioContext||window.webkitAudioContext;let audio=null,lastSound=0;
+function soundOn(){return document.getElementById('soundMode')?.value!=='off'}
+function cue(kind='tick'){
+ if(!soundOn()||!C)return;
+ const t=performance.now();if(kind==='tick'&&t-lastSound<40)return;lastSound=t;
+ try{audio=audio||new C();if(audio.state==='suspended')audio.resume().catch(()=>{});if(audio.state!=='running')return;
+ const now=audio.currentTime,osc=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();
+ osc.type='triangle';let hz=kind==='tick'?900:kind==='open'?570:690,d=kind==='tick'?.034:.055;
+ osc.frequency.setValueAtTime(hz,now);osc.frequency.exponentialRampToValueAtTime(hz*.57,now+d);
+ f.type='lowpass';f.frequency.value=1700;g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(kind==='tick'?.055:.085,now+.003);g.gain.exponentialRampToValueAtTime(.0001,now+d);
+ osc.connect(f).connect(g).connect(audio.destination);osc.start(now);osc.stop(now+d+.01);
+ }catch(e){}
+}
+let mode='categories',cat=0,choice=0;
+const shell=document.createElement('div');shell.className='fd-wheel-shell';
+const heading=document.createElement('div');heading.className='fd-wheel-heading';
+const windowEl=document.createElement('div');windowEl.className='fd-wheel-window';windowEl.tabIndex=0;windowEl.setAttribute('role','listbox');windowEl.setAttribute('aria-label','Settings wheel');
+const track=document.createElement('div');track.className='fd-wheel-track';windowEl.append(track);
+const footer=document.createElement('div');footer.className='fd-wheel-footer';
+const nav=document.createElement('div');nav.className='fd-wheel-nav';
+const back=document.createElement('button');back.type='button';back.className='fd-wheel-back';back.textContent='← SETTINGS';
+const hint=document.createElement('span');hint.className='fd-wheel-instruction';hint.textContent='SCROLL · TAP TO SELECT';nav.append(back,hint);
+shell.append(heading,windowEl,footer,nav);root.insertBefore(shell,start);
+function items(){return mode==='categories'?labels:[...controls[cat].options].map(o=>o.textContent)}
+function idx(){return mode==='categories'?cat:choice}
+function selected(){return controls[cat].selectedIndex}
+function render(){
+ const a=items(),n=a.length,current=idx();track.replaceChildren();heading.textContent=mode==='categories'?'CHOOSE A SETTING':labels[cat];back.hidden=mode==='categories';
+ for(let offset=-2;offset<=2;offset++){
+  const i=(current+offset+n)%n;const el=document.createElement('div');el.className='fd-wheel-item'+(offset===0?' active':Math.abs(offset)===1?' near':'');el.textContent=a[i];el.setAttribute('role','option');el.setAttribute('aria-selected',String(offset===0));
+  el.addEventListener('click',()=>{if(offset!==0){move(offset);return}choose()});track.append(el)
  }
- document.addEventListener('pointerdown',e=>{if(e.target.closest('button,select'))ensure()},{capture:true,passive:true});
- document.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&enabled())cue(b.id==='back'||b.id==='homeBtn'?'back':'click')});
- document.addEventListener('change',e=>{if(e.target.matches('select')&&enabled())cue('click')});
- document.addEventListener('input',e=>{if(e.target.matches('select')&&enabled()){const t=performance.now();if(t-lastTick>55){lastTick=t;cue('tick')}}});
- document.addEventListener('keydown',e=>{if(e.target.matches('select')&&['ArrowDown','ArrowUp','ArrowLeft','ArrowRight'].includes(e.key)&&enabled()){const t=performance.now();if(t-lastTick>75){lastTick=t;cue('tick')}}});
- document.addEventListener('wheel',e=>{if(!e.target.closest('select,.option')||!enabled())return;const t=performance.now();if(t-lastTick>130){lastTick=t;cue('tick')}},{passive:true});
-let lastTouchY=null;document.addEventListener('touchstart',e=>{if(e.target.closest('select,.option'))lastTouchY=e.touches[0]?.clientY??null},{passive:true});document.addEventListener('touchmove',e=>{if(lastTouchY===null||!e.target.closest('select,.option')||!enabled())return;const y=e.touches[0]?.clientY;if(y!==undefined&&Math.abs(y-lastTouchY)>18){lastTouchY=y;const t=performance.now();if(t-lastTick>85){lastTick=t;cue('tick')}}},{passive:true});document.addEventListener('touchend',()=>{lastTouchY=null},{passive:true});
-
- // Browser-native option popups hide individual wheel/touch steps from page JavaScript.
- // Replace only the visible selector with an accessible in-page scrolling menu;
- // retain the original <select> as the source of truth for all game logic.
- document.querySelectorAll('.option select').forEach(select=>{
-   const wrap=document.createElement('div');wrap.className='fd-dropdown';
-   const trigger=document.createElement('button');trigger.type='button';trigger.className='fd-trigger';
-   trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-expanded','false');
-   const menu=document.createElement('div');menu.className='fd-menu';menu.setAttribute('role','listbox');menu.tabIndex=-1;
-   const entries=[...select.options].map((option,index)=>{
-     const entry=document.createElement('button');entry.type='button';entry.className='fd-entry';
-     entry.textContent=option.textContent;entry.setAttribute('role','option');
-     entry.addEventListener('click',()=>{select.selectedIndex=index;select.dispatchEvent(new Event('change',{bubbles:true}));close();trigger.focus()});
-     menu.appendChild(entry);return entry;
-   });
-   function sync(){trigger.textContent=select.options[select.selectedIndex]?.textContent||'';entries.forEach((entry,i)=>{entry.setAttribute('aria-selected',String(i===select.selectedIndex));entry.classList.toggle('chosen',i===select.selectedIndex)})}
-   function close(){wrap.classList.remove('open');trigger.setAttribute('aria-expanded','false')}
-   function open(){document.querySelectorAll('.fd-dropdown.open').forEach(w=>{if(w!==wrap){w.classList.remove('open');w.querySelector('.fd-trigger')?.setAttribute('aria-expanded','false')}});wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');sync();entries[select.selectedIndex]?.scrollIntoView({block:'nearest'});}
-   trigger.addEventListener('click',()=>wrap.classList.contains('open')?close():open());
-   trigger.addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp','Enter',' '].includes(e.key)){e.preventDefault();if(!wrap.classList.contains('open'))open();else if(e.key==='ArrowDown'||e.key==='ArrowUp'){let next=(select.selectedIndex+(e.key==='ArrowDown'?1:-1)+entries.length)%entries.length;entries[next].focus();entries[next].scrollIntoView({block:'nearest'});cue('tick')}else close()}});
-   menu.addEventListener('keydown',e=>{const i=entries.indexOf(document.activeElement);if(e.key==='Escape'){close();trigger.focus()}else if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();const n=(i+(e.key==='ArrowDown'?1:-1)+entries.length)%entries.length;entries[n].focus();entries[n].scrollIntoView({block:'nearest'});cue('tick')}});
-   // V25: touch swipes need their own audible steps. On some browsers,
-   // a single-finger gesture moves the menu without generating scroll events
-   // at a useful cadence (whereas a two-finger trackpad gesture does).
-   // Count touch travel in option-sized increments, even during inertial scroll.
-   let touchAnchor=null;
-   menu.addEventListener('touchstart',e=>{
-     if(e.touches.length===1)touchAnchor=e.touches[0].clientY;
-   },{passive:true});
-   menu.addEventListener('touchmove',e=>{
-     if(touchAnchor===null||e.touches.length!==1)return;
-     const y=e.touches[0].clientY;
-     if(Math.abs(y-touchAnchor)>=24){
-       touchAnchor=y;
-       const t=performance.now();
-       if(t-lastTick>65){lastTick=t;cue('tick')}
-     }
-   },{passive:true});
-   menu.addEventListener('touchend',()=>{touchAnchor=null},{passive:true});
-   menu.addEventListener('touchcancel',()=>{touchAnchor=null},{passive:true});
-   let lastStep=0;
-   menu.addEventListener('scroll',()=>{const step=Math.round(menu.scrollTop/30);if(step!==lastStep){lastStep=step;const t=performance.now();if(t-lastTick>65){lastTick=t;cue('tick')}}},{passive:true});
-   select.addEventListener('change',sync);
-   select.parentNode.insertBefore(wrap,select);wrap.append(trigger,menu);wrap.appendChild(select);select.classList.add('fd-original-select');sync();
-   document.addEventListener('pointerdown',e=>{if(!wrap.contains(e.target))close()});
- });
+ footer.textContent=mode==='categories'?controls[cat].options[selected()]?.textContent||'': 'TAP CENTER TO CONFIRM';
+ windowEl.setAttribute('aria-label',mode==='categories'?'Choose setting':`Choose ${labels[cat].toLowerCase()}`);
+}
+function move(delta){const n=items().length;if(!n)return;const next=(idx()+delta%n+n)%n;if(mode==='categories')cat=next;else choice=next;cue('tick');render()}
+function choose(){cue('open');if(mode==='categories'){mode='choices';choice=selected();render()}else{const select=controls[cat];select.selectedIndex=choice;select.dispatchEvent(new Event('change',{bubbles:true}));mode='categories';render()}}
+function goBack(){if(mode==='choices'){cue('open');mode='categories';render()}}
+back.addEventListener('click',goBack);
+windowEl.addEventListener('click',e=>{if(e.target===windowEl||e.target===track)choose()});
+let wheelDelta=0;windowEl.addEventListener('wheel',e=>{e.preventDefault();wheelDelta+=e.deltaY;while(Math.abs(wheelDelta)>=32){const direction=Math.sign(wheelDelta);wheelDelta-=direction*32;move(direction)}},{passive:false});
+let y=null,travel=0;windowEl.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.pointerType==='pen'){y=e.clientY;travel=0;windowEl.setPointerCapture(e.pointerId)}},{passive:true});
+windowEl.addEventListener('pointermove',e=>{if(y===null)return;const dy=y-e.clientY;y=e.clientY;travel+=dy;while(Math.abs(travel)>=30){const d=Math.sign(travel);travel-=d*30;move(d)}},{passive:true});
+windowEl.addEventListener('pointerup',()=>{y=null});windowEl.addEventListener('pointercancel',()=>{y=null});
+windowEl.addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp','PageDown','PageUp'].includes(e.key)){e.preventDefault();move(['ArrowDown','PageDown'].includes(e.key)?1:-1)}else if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}else if(e.key==='Escape'||e.key==='Backspace'){e.preventDefault();goBack()}});
+// Keep category preview synced when background or settings are changed programmatically.
+controls.forEach(select=>select.addEventListener('change',render));
+// Preserve existing navigation and start logic; just collapse the detail wheel on exit.
+[start,document.getElementById('back')].forEach(el=>el?.addEventListener('click',()=>{mode='categories';render()}));
+// Classy, short button cues, independent of the wheel movement tick.
+document.addEventListener('click',e=>{const button=e.target.closest('button');if(button&&!button.closest('.fd-wheel-shell'))cue('open')});
+render();
 })();
