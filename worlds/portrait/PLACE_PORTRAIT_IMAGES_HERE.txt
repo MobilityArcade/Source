@@ -1,0 +1,1 @@
+Add portrait 2160x3840+ JPG images using matching world filenames. Without them the app falls back to landscape images.
