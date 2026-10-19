@@ -21,28 +21,28 @@ let mode='categories',cat=0,choice=0;
 const shell=document.createElement('div');shell.className='fd-wheel-shell';
 const heading=document.createElement('div');heading.className='fd-wheel-heading';
 const windowEl=document.createElement('div');windowEl.className='fd-wheel-window';windowEl.tabIndex=0;windowEl.setAttribute('role','listbox');windowEl.setAttribute('aria-label','Settings wheel');
-const track=document.createElement('div');track.className='fd-wheel-track';windowEl.append(track);
+const track=document.createElement('div');track.className='fd-wheel-track';windowEl.append(track);const arrows=document.createElement('div');arrows.className='fd-wheel-arrows';const up=document.createElement('button');up.type='button';up.className='fd-wheel-arrow';up.textContent='▲';up.setAttribute('aria-label','Previous option');const down=document.createElement('button');down.type='button';down.className='fd-wheel-arrow';down.textContent='▼';down.setAttribute('aria-label','Next option');arrows.append(up,down);windowEl.append(arrows);
 const footer=document.createElement('div');footer.className='fd-wheel-footer';
 const nav=document.createElement('div');nav.className='fd-wheel-nav';
 const back=document.createElement('button');back.type='button';back.className='fd-wheel-back';back.textContent='← SETTINGS';
 const hint=document.createElement('span');hint.className='fd-wheel-instruction';hint.textContent='SCROLL · TAP TO SELECT';nav.append(back,hint);
-shell.append(heading,windowEl,footer,nav);root.insertBefore(shell,start);
+shell.append(windowEl);root.insertBefore(shell,start);
 function items(){return mode==='categories'?labels:[...controls[cat].options].map(o=>o.textContent)}
 function idx(){return mode==='categories'?cat:choice}
 function selected(){return controls[cat].selectedIndex}
 function render(){
  const a=items(),n=a.length,current=idx();track.replaceChildren();heading.textContent=mode==='categories'?'CHOOSE A SETTING':labels[cat];back.hidden=mode==='categories';
- for(let offset=-2;offset<=2;offset++){
+ for(let offset=0;offset<=0;offset++){
   const i=(current+offset+n)%n;const el=document.createElement('div');el.className='fd-wheel-item'+(offset===0?' active':Math.abs(offset)===1?' near':'');el.textContent=a[i];el.setAttribute('role','option');el.setAttribute('aria-selected',String(offset===0));
   el.addEventListener('click',()=>{if(offset!==0){move(offset);return}choose()});track.append(el)
  }
- footer.textContent=mode==='categories'?controls[cat].options[selected()]?.textContent||'': 'TAP CENTER TO CONFIRM';
- windowEl.setAttribute('aria-label',mode==='categories'?'Choose setting':`Choose ${labels[cat].toLowerCase()}`);
+ footer.textContent='';
+ windowEl.setAttribute('aria-label',mode==='categories'?'Choose setting':`Choose ${labels[cat].toLowerCase()}`);windowEl.classList.toggle('fd-choices',mode==='choices');
 }
 function move(delta){const n=items().length;if(!n)return;const next=(idx()+delta%n+n)%n;if(mode==='categories')cat=next;else choice=next;cue('tick');render()}
 function choose(){cue('open');if(mode==='categories'){mode='choices';choice=selected();render()}else{const select=controls[cat];select.selectedIndex=choice;select.dispatchEvent(new Event('change',{bubbles:true}));mode='categories';render()}}
 function goBack(){if(mode==='choices'){cue('open');mode='categories';render()}}
-back.addEventListener('click',goBack);
+back.addEventListener('click',goBack);up.addEventListener('click',e=>{e.stopPropagation();move(-1)});down.addEventListener('click',e=>{e.stopPropagation();move(1)});
 windowEl.addEventListener('click',e=>{if(e.target===windowEl||e.target===track)choose()});
 let wheelDelta=0;windowEl.addEventListener('wheel',e=>{e.preventDefault();wheelDelta+=e.deltaY;while(Math.abs(wheelDelta)>=32){const direction=Math.sign(wheelDelta);wheelDelta-=direction*32;move(direction)}},{passive:false});
 let y=null,travel=0;windowEl.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.pointerType==='pen'){y=e.clientY;travel=0;windowEl.setPointerCapture(e.pointerId)}},{passive:true});
