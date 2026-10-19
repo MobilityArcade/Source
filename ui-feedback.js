@@ -55,5 +55,20 @@ controls.forEach(select=>select.addEventListener('change',render));
 [start,document.getElementById('back')].forEach(el=>el?.addEventListener('click',()=>{mode='categories';render()}));
 // Classy, short button cues, independent of the wheel movement tick.
 document.addEventListener('click',e=>{const button=e.target.closest('button');if(button&&!button.closest('.fd-wheel-shell'))cue('open')});
+// Match the finish message to the actual cue's computed typography, including mix mode.
+const finish=document.getElementById('finishTitle');const done=document.getElementById('done');
+function syncFinish(){
+ const cueEl=document.getElementById('command');if(!finish||!cueEl)return;
+ const c=getComputedStyle(cueEl);
+ for(const prop of ['font-family','font-style','font-weight','letter-spacing','color','-webkit-text-stroke','-webkit-text-stroke-color','-webkit-text-stroke-width','text-shadow','text-transform','filter','background','background-image','background-clip','-webkit-background-clip']){
+  finish.style.setProperty(prop,c.getPropertyValue(prop),'important');
+ }
+ finish.style.setProperty('transform',c.transform==='none'?'none':c.transform,'important');
+ finish.style.setProperty('font-size','clamp(42px, 8.2vw, 118px)','important');
+ finish.style.setProperty('line-height','1.08','important');
+ finish.style.setProperty('white-space','nowrap','important');
+ finish.style.setProperty('max-width','96vw','important');
+}
+if(done&&finish){new MutationObserver(()=>{if(!done.classList.contains('hidden'))syncFinish()}).observe(done,{attributes:true,attributeFilter:['class']});}
 render();
 })();
