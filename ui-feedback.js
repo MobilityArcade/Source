@@ -16,6 +16,8 @@
  document.addEventListener('pointerdown',e=>{if(e.target.closest('button,select'))ensure()},{capture:true,passive:true});
  document.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&enabled())cue(b.id==='back'||b.id==='homeBtn'?'back':'click')});
  document.addEventListener('change',e=>{if(e.target.matches('select')&&enabled())cue('click')});
+ document.addEventListener('input',e=>{if(e.target.matches('select')&&enabled()){const t=performance.now();if(t-lastTick>55){lastTick=t;cue('tick')}}});
  document.addEventListener('keydown',e=>{if(e.target.matches('select')&&['ArrowDown','ArrowUp','ArrowLeft','ArrowRight'].includes(e.key)&&enabled()){const t=performance.now();if(t-lastTick>75){lastTick=t;cue('tick')}}});
- document.addEventListener('wheel',e=>{if(!e.target.closest('select')||!enabled())return;const t=performance.now();if(t-lastTick>130){lastTick=t;cue('tick')}},{passive:true});
+ document.addEventListener('wheel',e=>{if(!e.target.closest('select,.option')||!enabled())return;const t=performance.now();if(t-lastTick>130){lastTick=t;cue('tick')}},{passive:true});
+let lastTouchY=null;document.addEventListener('touchstart',e=>{if(e.target.closest('select,.option'))lastTouchY=e.touches[0]?.clientY??null},{passive:true});document.addEventListener('touchmove',e=>{if(lastTouchY===null||!e.target.closest('select,.option')||!enabled())return;const y=e.touches[0]?.clientY;if(y!==undefined&&Math.abs(y-lastTouchY)>18){lastTouchY=y;const t=performance.now();if(t-lastTick>85){lastTick=t;cue('tick')}}},{passive:true});document.addEventListener('touchend',()=>{lastTouchY=null},{passive:true});
 })();
