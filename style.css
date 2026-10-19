@@ -256,3 +256,15 @@ html,body,.game{background:#02020a!important}
 .game #command.counting,.game #command.go{line-height:1.08!important;letter-spacing:inherit;white-space:nowrap!important;color:var(--cue-fill,#fff)}
 .game[data-font="outline"] #command.counting,.game[data-font="outline"] #command.go{color:#0b0823}
 .game[data-font="chrome"] #command.counting,.game[data-font="chrome"] #command.go{color:transparent}
+
+/* V24: scrollable menus with audible movement; preserve game styling. */
+.fd-dropdown{position:relative;width:100%;min-width:0}
+.fd-original-select{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important}
+.fd-trigger{display:block;width:100%;min-height:44px;padding:10px 28px 10px 12px;text-align:left;color:white;font-weight:800;font-size:clamp(14px,2vw,18px);background:#161026;border:1px solid #29cfff44;border-radius:10px;cursor:pointer;position:relative}
+.fd-trigger:after{content:'⌄';position:absolute;right:12px;top:50%;transform:translateY(-58%);font-size:19px;font-weight:400}
+.fd-trigger:focus-visible,.fd-entry:focus-visible{outline:2px solid #00eaff;outline-offset:1px}
+.fd-menu{display:none;position:absolute;z-index:100;top:calc(100% + 3px);left:0;right:0;max-height:min(230px,45vh);overflow-y:auto;overscroll-behavior:contain;background:#140d27;border:1px solid #56dfff;border-radius:10px;box-shadow:0 12px 28px #000c;scrollbar-width:thin;scrollbar-color:#ff48bd #140d27}
+.fd-dropdown.open .fd-menu{display:block}
+.fd-entry{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #ffffff16;background:transparent;color:white;font:inherit;font-weight:700;padding:11px 12px;cursor:pointer}
+.fd-entry:hover,.fd-entry:focus-visible,.fd-entry.chosen{background:#2855b0}
+@media(max-height:650px){.fd-trigger{min-height:33px;padding:5px 25px 5px 9px}.fd-entry{padding:7px 10px}.fd-menu{max-height:180px}}
