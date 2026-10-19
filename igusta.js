@@ -7,12 +7,12 @@ function fmt(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%
 function tone(){}
 function sound(name){window.FlashSound?.play(({start:'go',half:'half',end:'finish'})[name]||name)}
 function shuffle(items){const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function paceSeconds(){return {quick:2.6,steady:4,chill:6}[$('pace').value]||4}
+function paceSeconds(){return {turbo:1.3,quick:2.6,steady:4,chill:6}[$('pace').value]||4}
 function makeSequence(){const bank=window.MOVEMENT_WORDS.dance;const cards=[];let at=0,previous='';while(at<duration){const deck=shuffle(bank);if(deck.length>1&&deck[0][0]===previous)deck.push(deck.shift());for(const card of deck){if(at>=duration)break;cards.push({at,word:card[lang()==='es'?1:0]});previous=card[0];at+=paceSeconds()}}return cards}
 function cancel(){runId++;clearInterval(interval);clearTimeout(countdownTimer);interval=null;countdownTimer=null}
 function fitWord(){
  const el=$('command');
- if($('round').classList.contains('hidden')||el.classList.contains('counting'))return;
+ if($('round').classList.contains('hidden'))return;
  const zone=el.parentElement;
  const word=el.textContent.trim();
  if(!word)return;
