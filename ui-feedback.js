@@ -26,7 +26,7 @@ const footer=document.createElement('div');footer.className='fd-wheel-footer';
 const nav=document.createElement('div');nav.className='fd-wheel-nav';
 const back=document.createElement('button');back.type='button';back.className='fd-wheel-back';back.textContent='← SETTINGS';
 const hint=document.createElement('span');hint.className='fd-wheel-instruction';hint.textContent='SCROLL · TAP TO SELECT';nav.append(back,hint);
-const smallHint=document.createElement('div');smallHint.className='fd-wheel-hint';smallHint.textContent='SCROLL UP OR DOWN';shell.append(windowEl,smallHint);root.insertBefore(shell,start);
+const smallHint=document.createElement('div');smallHint.className='fd-wheel-hint';smallHint.textContent='';shell.append(windowEl,smallHint);root.insertBefore(shell,start);
 function items(){return mode==='categories'?labels:[...controls[cat].options].map(o=>o.textContent)}
 function idx(){return mode==='categories'?cat:choice}
 function selected(){return controls[cat].selectedIndex}
@@ -64,7 +64,18 @@ function syncFinish(){
  const cueEl=document.getElementById('command');if(!finish||!cueEl)return;
  if(!cueSnapshot)snapshotCue();
  for(const [prop,value] of Object.entries(cueSnapshot||{})){if(value)finish.style.setProperty(prop,value,'important')}
- finish.style.setProperty('font-size','clamp(38px, 8.2vw, 118px)','important');
+ // Fit the full completion phrase to the available viewport while keeping it large.
+ finish.style.setProperty('font-size','clamp(48px, 10vw, 154px)','important');
+ finish.style.setProperty('width','max-content','important');
+ finish.style.setProperty('max-width','none','important');
+ finish.style.setProperty('transform-origin','center center','important');
+ requestAnimationFrame(()=>{
+   const maxWidth=window.innerWidth*.88;
+   const width=finish.getBoundingClientRect().width;
+   const scale=width>maxWidth?maxWidth/width:1;
+   const cueTransform=cueSnapshot?.transform;
+   finish.style.setProperty('transform', (cueTransform&&cueTransform!=='none'?cueTransform+' ':'')+`scale(${scale})`,'important');
+ });
  finish.style.setProperty('line-height','1.04','important');
  finish.style.setProperty('white-space','nowrap','important');
  finish.style.setProperty('max-width','96vw','important');
