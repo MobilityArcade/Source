@@ -293,3 +293,32 @@ html,body,.game{background:#02020a!important}
 .fd-wheel-back[hidden]{visibility:hidden}
 .fd-wheel-instruction{font-size:12px;color:#fff9}
 @media(max-height:680px){#setup{gap:5px!important;padding:10px!important}#setup .logo.compact{font-size:clamp(34px,6vw,55px)!important}#setup>.tag{margin:3px!important}.fd-wheel-window{height:clamp(190px,39dvh,270px);min-height:185px}.fd-wheel-item{height:65px;min-height:65px}.fd-wheel-window:before{top:calc(50% - 33px)}.fd-wheel-window:after{top:calc(50% + 33px)}}
+
+/* V27: one-line transparent wheel; only selected setting is visible. */
+#setup .fd-wheel-shell{width:min(540px,86vw)!important;max-width:86vw!important;gap:0!important;margin:clamp(12px,4vh,40px) auto 0!important}
+#setup .fd-wheel-window{width:100%!important;height:76px!important;min-height:76px!important;border-radius:18px!important;background:#080617ad!important;border:1px solid #ff7fdb88!important;box-shadow:0 6px 22px #0005!important;overflow:hidden!important}
+#setup .fd-wheel-window:before,#setup .fd-wheel-window:after{display:none!important}
+#setup .fd-wheel-track{inset:0 76px 0 4px!important}
+#setup .fd-wheel-item{height:74px!important;min-height:74px!important;width:100%!important;transform:none!important;font-size:clamp(18px,2.6vw,27px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;padding:0 4px!important;justify-content:center!important}
+#setup .fd-wheel-item.active{font-size:clamp(18px,2.6vw,27px)!important;transform:none!important;text-shadow:0 0 14px #ff48c4aa!important}
+#setup .fd-wheel-item.active:after{content:'›'!important;margin-left:10px!important;font-size:29px!important;flex-shrink:0!important}
+#setup .fd-wheel-arrows{position:absolute;right:0;top:0;bottom:0;width:72px;display:flex;flex-direction:column;z-index:5;border-left:1px solid #ffffff44}
+#setup .fd-wheel-arrow{height:50%;width:100%;border:0;background:#160c2aa8;color:#fff;font-size:16px;font-weight:900;cursor:pointer;touch-action:manipulation}
+#setup .fd-wheel-arrow:first-child{border-bottom:1px solid #ffffff30}
+#setup .fd-wheel-arrow:active{background:#e728a888}
+#setup .fd-wheel-heading,#setup .fd-wheel-footer,#setup .fd-wheel-nav{display:none!important}
+#setup .startButton{margin:clamp(12px,3vh,26px) auto 8px!important}
+#setup{justify-content:center!important}
+#setup .logo.compact{margin-top:0!important}
+@media(max-width:600px){#setup .fd-wheel-window{height:66px!important;min-height:66px!important}#setup .fd-wheel-item{height:64px!important;min-height:64px!important}#setup .fd-wheel-track{right:62px!important}#setup .fd-wheel-arrows{width:60px!important}#setup .fd-wheel-item.active{font-size:clamp(16px,4.5vw,23px)!important}}
+/* V27 finish uses the identical typography palette and font selectors as gameplay. */
+#done #finishTitle{color:var(--cue-fill,#fff);font-weight:1000;max-width:94vw;text-align:center;overflow-wrap:normal;text-wrap:balance;letter-spacing:-.045em;line-height:1.05;text-shadow:0 0 14px var(--cue-glow,#ff00a8),0 0 28px var(--cue-glow,#ff00a8)}
+
+.game[data-font="outline"] #finishTitle{font-family:Impact,'Arial Black',sans-serif;font-weight:1000;font-style:italic;color:#07051b;-webkit-text-stroke:clamp(2px,.5vw,6px) var(--cue-fill);text-shadow:0 0 15px var(--cue-glow),0 0 34px var(--cue-glow)}
+.game[data-font="bold"] #finishTitle{font-family:Impact,'Arial Black',sans-serif;font-style:italic;font-weight:1000;letter-spacing:-.045em;transform:skew(-6deg);-webkit-text-stroke:0;text-shadow:4px 6px 0 #1574ed,0 0 22px var(--cue-glow)}
+.game[data-font="outline"] #finishTitle{font-family:Impact,'Arial Black',sans-serif;font-style:italic;font-weight:1000;letter-spacing:-.035em;color:#0b0823;-webkit-text-stroke:clamp(2px,.5vw,7px) var(--cue-fill);text-shadow:0 0 15px var(--cue-glow),0 0 34px var(--cue-glow)}
+.game[data-font="graffiti"] #finishTitle{font-family:Impact,'Arial Black',sans-serif;font-style:italic;font-weight:1000;letter-spacing:-.055em;transform:rotate(-3deg) skew(-10deg);-webkit-text-stroke:2px #15dafa;text-shadow:6px 8px 0 #f409ac,-3px -3px 0 #0b42db,0 0 26px var(--cue-glow)}
+.game[data-font="chrome"] #finishTitle{font-family:Impact,'Arial Black',sans-serif;font-style:italic;font-weight:1000;letter-spacing:-.04em;background:linear-gradient(#fff 8%,#8c92d1 35%,#fff 49%,#43477d 55%,#e9faff 80%);background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-stroke:1px #b2d3ff;text-shadow:5px 6px 0 #252357,0 0 28px #e2ddff80}
+.game[data-font="pixel"] #finishTitle{font-family:'Courier New',monospace;font-style:normal;font-weight:1000;letter-spacing:-.095em;transform:none;-webkit-text-stroke:1px var(--cue-fill);text-shadow:5px 0 0 #5d22c2,0 5px 0 #5d22c2,0 0 17px var(--cue-glow)}
+.game[data-font="brush"] #finishTitle{font-family:Impact,'Arial Black',sans-serif;font-style:italic;font-weight:1000;letter-spacing:-.055em;transform:rotate(-4deg) skew(-9deg);-webkit-text-stroke:1px #ff8d28;text-shadow:7px 5px 0 #a5104d,-4px -3px 0 #ffc947,0 0 26px var(--cue-glow)}
+.game[data-font="futuristic"] #finishTitle{font-family:'Trebuchet MS',Verdana,sans-serif;font-style:normal;font-weight:900;letter-spacing:.035em;transform:none;-webkit-text-stroke:2px #10d7ff;text-shadow:0 0 12px #06eaff,0 0 35px #007aff}
