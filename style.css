@@ -152,7 +152,7 @@ html,body{margin:0;background:#02020a}.game{border:0!important;border-radius:0!i
 html,body,.game{background:#02020a!important}
 .game{border:0!important;border-radius:0!important;box-shadow:none!important}
 .stage{background:#02020a!important}
-.stage > :not(#stillBackdrop){display:none!important}
+.stage > :not(#stillBackdrop):not(#danceHallLights){display:none!important}
 #stillBackdrop{position:absolute;inset:0;display:block;z-index:1;background-color:#02020a;background-position:center center;background-size:cover;background-repeat:no-repeat;image-rendering:auto;pointer-events:none}
 /* The artwork does not animate. UI is crisp text on top. */
 .game .screen{background:transparent!important}
