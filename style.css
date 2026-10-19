@@ -367,3 +367,18 @@ html,body,.game{background:#02020a!important}
 .game[data-font="pixel"] #done #finishTitle{font-family:'Courier New',monospace;font-style:normal;font-weight:1000;letter-spacing:-.095em;transform:none;-webkit-text-stroke:1px var(--cue-fill);text-shadow:5px 0 0 #5d22c2,0 5px 0 #5d22c2,0 0 17px var(--cue-glow)}
 .game[data-font="brush"] #done #finishTitle{font-family:Impact,'Arial Black',sans-serif;font-style:italic;font-weight:1000;letter-spacing:-.055em;transform:rotate(-4deg) skew(-9deg);-webkit-text-stroke:1px #ff8d28;text-shadow:7px 5px 0 #a5104d,-4px -3px 0 #ffc947,0 0 26px var(--cue-glow)}
 .game[data-font="futuristic"] #done #finishTitle{font-family:'Trebuchet MS',Verdana,sans-serif;font-style:normal;font-weight:900;letter-spacing:.035em;transform:none;-webkit-text-stroke:2px #10d7ff;text-shadow:0 0 12px #06eaff,0 0 35px #007aff}
+
+/* V30 — approved neon pill aesthetic, arrows left, no forward chevron. */
+#setup .fd-wheel-shell{width:min(600px,86vw)!important;max-width:86vw!important;gap:0!important}
+#setup .fd-wheel-window{height:88px!important;min-height:88px!important;max-height:88px!important;border-radius:999px!important;border:2px solid #ffb5e8!important;background:linear-gradient(105deg,#ff078f 0%,#ff2b9b 38%,#ff6a74 73%,#ffb13e 100%)!important;box-shadow:0 0 13px #ff23af,0 0 32px #ff2798a0,inset 0 2px 12px #ffffff38!important;touch-action:none!important}
+#setup .fd-wheel-arrows{left:0!important;right:auto!important;width:76px!important;border-left:0!important;border-right:0!important;background:transparent!important}
+#setup .fd-wheel-arrow{background:transparent!important;color:#fff!important;font-size:21px!important;text-shadow:0 0 10px #fff8!important;border:0!important}
+#setup .fd-wheel-arrow:first-child{border-bottom:0!important}
+#setup .fd-wheel-track{left:76px!important;right:18px!important}
+#setup .fd-wheel-item.active{color:#fff!important;font-size:clamp(21px,2.6vw,33px)!important;font-weight:1000!important;text-shadow:0 2px 8px #ba0b6788!important}
+#setup .fd-wheel-item.active::after{display:none!important;content:none!important}
+#setup .fd-wheel-hint{display:none!important}
+#setup .startButton{margin:22px auto 0!important}
+#done .finishCenter{width:100%!important;max-width:100%!important;overflow:visible!important}
+#done #finishTitle{display:block!important;width:max-content!important;max-width:none!important;margin:0 auto!important;white-space:nowrap!important;line-height:1.14!important;letter-spacing:normal;transform-origin:center center!important}
+@media(max-width:600px){#setup .fd-wheel-shell{width:92vw!important;max-width:92vw!important}#setup .fd-wheel-window{height:68px!important;min-height:68px!important;max-height:68px!important}#setup .fd-wheel-arrows{width:56px!important}#setup .fd-wheel-track{left:56px!important;right:10px!important}#setup .fd-wheel-item.active{font-size:clamp(17px,4.6vw,25px)!important}}
