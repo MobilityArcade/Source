@@ -268,3 +268,28 @@ html,body,.game{background:#02020a!important}
 .fd-entry{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #ffffff16;background:transparent;color:white;font:inherit;font-weight:700;padding:11px 12px;cursor:pointer}
 .fd-entry:hover,.fd-entry:focus-visible,.fd-entry.chosen{background:#2855b0}
 @media(max-height:650px){.fd-trigger{min-height:33px;padding:5px 25px 5px 9px}.fd-entry{padding:7px 10px}.fd-menu{max-height:180px}}
+
+/* V26 — one central settings wheel, no stacked form controls */
+#setup{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vh,18px);padding:clamp(18px,3vh,34px) 16px!important;min-height:100dvh;box-sizing:border-box;overflow:hidden}
+#setup.hidden{display:none!important}
+#setup .logo.compact{margin:0!important;font-size:clamp(48px,7vw,88px)!important;line-height:.82!important}
+#setup>.tag{margin:8px 0 8px!important;font-size:clamp(9px,1.1vw,13px)!important}
+#setup>.options{display:none!important}
+#setup .startButton{margin:6px auto 0!important;width:min(450px,88vw)!important;flex-shrink:0}
+.fd-wheel-shell{width:min(500px,90vw);display:flex;flex-direction:column;align-items:center;gap:9px;min-height:0}
+.fd-wheel-heading{font-size:12px;letter-spacing:.24em;font-weight:900;color:#fff9;text-align:center}
+.fd-wheel-window{width:100%;height:clamp(240px,43dvh,350px);min-height:210px;position:relative;overflow:hidden;border-radius:24px;background:linear-gradient(180deg,#0a0616e8,#180b2bdb 50%,#0a0616e8);border:1px solid #ffffff3a;box-shadow:0 16px 45px #0009,inset 0 0 35px #260e4b8c;touch-action:none;user-select:none;outline:none}
+.fd-wheel-window:focus-visible{outline:2px solid #55ddff}
+.fd-wheel-window:before,.fd-wheel-window:after{content:'';position:absolute;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,#ff5adf,#62dcff,transparent);top:calc(50% - 39px);z-index:2;pointer-events:none}
+.fd-wheel-window:after{top:calc(50% + 39px)}
+.fd-wheel-track{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.fd-wheel-item{height:78px;min-height:78px;width:96%;display:flex;align-items:center;justify-content:center;text-align:center;color:#ffffff55;font-size:clamp(16px,2.6vw,24px);font-weight:850;letter-spacing:.025em;transform:scale(.78);transition:color .15s,transform .15s;pointer-events:auto;cursor:pointer}
+.fd-wheel-item.near{color:#ffffffa6;transform:scale(.88)}
+.fd-wheel-item.active{color:white;transform:scale(1.04);font-size:clamp(22px,3.6vw,32px);text-shadow:0 0 17px #ff45d980}
+.fd-wheel-item.active:after{content:'›';font-size:30px;color:#ff6fd8;margin-left:14px}
+.fd-wheel-footer{font-size:clamp(11px,1.2vw,14px);font-weight:750;letter-spacing:.04em;color:#fff9;text-align:center;min-height:20px}
+.fd-wheel-nav{display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px}
+.fd-wheel-back{border:1px solid #ffffff55;border-radius:30px;background:#0c081cbb;color:white;padding:8px 16px;font-weight:800;cursor:pointer}
+.fd-wheel-back[hidden]{visibility:hidden}
+.fd-wheel-instruction{font-size:12px;color:#fff9}
+@media(max-height:680px){#setup{gap:5px!important;padding:10px!important}#setup .logo.compact{font-size:clamp(34px,6vw,55px)!important}#setup>.tag{margin:3px!important}.fd-wheel-window{height:clamp(190px,39dvh,270px);min-height:185px}.fd-wheel-item{height:65px;min-height:65px}.fd-wheel-window:before{top:calc(50% - 33px)}.fd-wheel-window:after{top:calc(50% + 33px)}}
