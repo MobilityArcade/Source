@@ -1,47 +1,62 @@
-/* FLASH DANZE V17: art-registered, restrained light-only cinemagraph.
-   Original artwork remains a static image. This overlay is aligned to the
-   1662x946 Dance Hall source, using SVG's xMidYMid slice cropping behavior. */
+/* FLASH DANZE V18 — Dance Hall cinemagraph. Artwork stays perfectly still.
+   All SVG geometry uses the original Dance Hall image coordinate system (1662x946).
+   preserveAspectRatio=slice tracks CSS background-size:cover, even on phones. */
 (()=>{'use strict';
-const stage=document.querySelector('#game .stage');
-if(!stage)return;
-const overlay=document.createElement('div');
-overlay.id='danceHallLights';
-overlay.setAttribute('aria-hidden','true');
-overlay.innerHTML=`<svg viewBox="0 0 1662 946" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="presentation">
+const game=document.getElementById('game'),stage=game?.querySelector('.stage');if(!stage)return;
+const layer=document.createElement('div');layer.id='danceHallLights';layer.setAttribute('aria-hidden','true');
+layer.innerHTML=`<svg viewBox="0 0 1662 946" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
 <defs>
-  <filter id="softNeon" x="-100%" y="-150%" width="300%" height="400%"><feGaussianBlur stdDeviation="9"/></filter>
-  <filter id="softDisco" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur stdDeviation="5"/></filter>
-  <radialGradient id="floorPink"><stop stop-color="#ff2bd1" stop-opacity=".35"/><stop offset=".48" stop-color="#f71fb5" stop-opacity=".09"/><stop offset="1" stop-color="#f71fb5" stop-opacity="0"/></radialGradient>
-  <radialGradient id="floorBlue"><stop stop-color="#00dfff" stop-opacity=".27"/><stop offset=".5" stop-color="#009dff" stop-opacity=".07"/><stop offset="1" stop-color="#009dff" stop-opacity="0"/></radialGradient>
-  <radialGradient id="ballAura"><stop stop-color="#fff" stop-opacity=".17"/><stop offset=".32" stop-color="#ef6bff" stop-opacity=".10"/><stop offset="1" stop-color="#ef6bff" stop-opacity="0"/></radialGradient>
+ <filter id="v18Blur" x="-100%" y="-150%" width="300%" height="400%"><feGaussianBlur stdDeviation="13"/></filter>
+ <filter id="v18Haze" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="24"/></filter>
+ <filter id="v18SparkBlur" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
+ <radialGradient id="v18Pink"><stop stop-color="#ff76e9" stop-opacity=".67"/><stop offset=".4" stop-color="#fa1fc8" stop-opacity=".28"/><stop offset="1" stop-color="#e911b8" stop-opacity="0"/></radialGradient>
+ <radialGradient id="v18Cyan"><stop stop-color="#a9faff" stop-opacity=".63"/><stop offset=".4" stop-color="#00cfff" stop-opacity=".24"/><stop offset="1" stop-color="#00cfff" stop-opacity="0"/></radialGradient>
+ <radialGradient id="v18Fog"><stop stop-color="#d5c6ff" stop-opacity=".31"/><stop offset=".5" stop-color="#a277d9" stop-opacity=".14"/><stop offset="1" stop-color="#8c7cbb" stop-opacity="0"/></radialGradient>
+ <radialGradient id="v18White"><stop stop-color="#fff" stop-opacity=".95"/><stop offset=".25" stop-color="#fff" stop-opacity=".42"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+ <clipPath id="v18BallClip"><circle cx="831" cy="210" r="75"/></clipPath>
 </defs>
-<!-- Light-source highlights track existing ceiling and side-mounted fixtures. -->
-<g class="dh-neon-pink" fill="none" stroke="#ff47d8" stroke-linecap="round" filter="url(#softNeon)">
- <path d="M447 5 L498 115 M1160 3 L1120 120" stroke-width="18"/>
- <path d="M120 200 L110 462 M1550 198 L1558 460" stroke-width="14"/>
- <path d="M596 218 L622 287 M1066 218 L1037 291" stroke-width="12"/>
+<!-- Faint beams of colored light stay registered to real overhead tubes. -->
+<g class="v18PinkNeon" fill="none" stroke="#ff47da" stroke-linecap="round" filter="url(#v18Blur)">
+ <path d="M447 5 L498 115 M1160 3 L1120 120" stroke-width="26"/>
+ <path d="M120 200 L110 462 M1550 198 L1558 460" stroke-width="18"/>
+ <path d="M596 218 L622 287 M1066 218 L1037 291" stroke-width="18"/>
 </g>
-<g class="dh-neon-blue" fill="none" stroke="#00d9ff" stroke-linecap="round" filter="url(#softNeon)">
- <path d="M260 98 L343 166 M1400 94 L1314 169" stroke-width="19"/>
- <path d="M486 443 L486 571 M1173 441 L1173 568" stroke-width="11"/>
+<g class="v18CyanNeon" fill="none" stroke="#25eaff" stroke-linecap="round" filter="url(#v18Blur)">
+ <path d="M260 98 L343 166 M1400 94 L1314 169" stroke-width="28"/>
+ <path d="M486 443 L486 571 M1173 441 L1173 568" stroke-width="16"/>
 </g>
-<!-- Soft disco-ball highlights, restrained and confined to its actual location. -->
-<g class="dh-disco">
- <ellipse cx="829" cy="212" rx="90" ry="90" fill="url(#ballAura)"/>
- <g fill="#ffffff" filter="url(#softDisco)">
-  <circle cx="798" cy="188" r="8"/><circle cx="851" cy="225" r="7"/>
-  <circle cx="818" cy="247" r="5"/><circle cx="863" cy="184" r="5"/>
+<!-- The ball does not move; glints travel across its existing surface. -->
+<g clip-path="url(#v18BallClip)">
+ <g class="v18BallGlints">
+  <ellipse cx="804" cy="181" rx="28" ry="34" fill="url(#v18White)"/>
+  <ellipse cx="865" cy="220" rx="21" ry="29" fill="url(#v18White)"/>
+  <ellipse cx="829" cy="254" rx="16" ry="19" fill="url(#v18White)"/>
+  <path d="M735 145 L754 165 M780 130 L800 150 M854 141 L874 161 M900 170 L920 190" stroke="#fce7ff" stroke-width="5" filter="url(#v18SparkBlur)"/>
  </g>
- <g fill="#ffffff"><circle cx="798" cy="188" r="2.3"/><circle cx="851" cy="225" r="2"/><circle cx="818" cy="247" r="1.6"/></g>
 </g>
-<!-- Gentle, localized reflected light on the original floor (no movement). -->
-<g class="dh-reflection"><ellipse cx="510" cy="765" rx="390" ry="165" fill="url(#floorPink)"/>
- <ellipse cx="1160" cy="785" rx="390" ry="170" fill="url(#floorBlue)"/>
- <ellipse cx="834" cy="682" rx="235" ry="60" fill="url(#floorBlue)"/></g>
+<!-- Four independent sparkle bursts near the disco ball. -->
+<g class="v18Spark v18SparkA" transform="translate(783 178)"><circle r="21" fill="url(#v18White)"/><path d="M-19 0H19M0-19V19" stroke="#fff" stroke-width="2"/></g>
+<g class="v18Spark v18SparkB" transform="translate(877 211)"><circle r="18" fill="url(#v18White)"/><path d="M-17 0H17M0-17V17" stroke="#fff" stroke-width="2"/></g>
+<g class="v18Spark v18SparkC" transform="translate(830 259)"><circle r="14" fill="url(#v18White)"/><path d="M-14 0H14M0-14V14" stroke="#fff" stroke-width="2"/></g>
+<!-- Broad reflective washes move across only the existing reflective floor. -->
+<g class="v18FloorPink"><ellipse cx="430" cy="779" rx="340" ry="115" fill="url(#v18Pink)"/><ellipse cx="770" cy="874" rx="320" ry="82" fill="url(#v18Pink)"/></g>
+<g class="v18FloorCyan"><ellipse cx="1190" cy="803" rx="345" ry="120" fill="url(#v18Cyan)"/><ellipse cx="846" cy="699" rx="260" ry="60" fill="url(#v18Cyan)"/></g>
+<g class="v18FloorSweep"><ellipse cx="820" cy="865" rx="210" ry="85" fill="url(#v18White)"/></g>
+<!-- Smoke comes from two actual rear-floor haze points, rising and dissipating. -->
+<g class="v18Fog v18FogLeft" filter="url(#v18Haze)">
+ <ellipse cx="590" cy="612" rx="108" ry="28" fill="url(#v18Fog)"/>
+ <ellipse cx="618" cy="594" rx="94" ry="43" fill="url(#v18Fog)"/>
+ <ellipse cx="555" cy="604" rx="77" ry="31" fill="url(#v18Fog)"/>
+</g>
+<g class="v18Fog v18FogRight" filter="url(#v18Haze)">
+ <ellipse cx="1070" cy="610" rx="116" ry="32" fill="url(#v18Fog)"/>
+ <ellipse cx="1035" cy="590" rx="88" ry="43" fill="url(#v18Fog)"/>
+ <ellipse cx="1110" cy="603" rx="75" ry="30" fill="url(#v18Fog)"/>
+</g>
+<g class="v18Fog v18FogLeft v18FogLate" filter="url(#v18Haze)"><ellipse cx="600" cy="612" rx="100" ry="32" fill="url(#v18Fog)"/></g>
+<g class="v18Fog v18FogRight v18FogLate" filter="url(#v18Haze)"><ellipse cx="1065" cy="610" rx="100" ry="32" fill="url(#v18Fog)"/></g>
 </svg>`;
-stage.append(overlay);
-const game=document.querySelector('#game');
-function sync(){overlay.hidden=game?.dataset.background!=='club'}
-new MutationObserver(sync).observe(game,{attributes:true,attributeFilter:['data-background']});
-sync();
+stage.append(layer);
+function sync(){layer.hidden=game.dataset.background!=='club'}
+new MutationObserver(sync).observe(game,{attributes:true,attributeFilter:['data-background']});sync();
 })();
