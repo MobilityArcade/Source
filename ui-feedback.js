@@ -41,6 +41,25 @@ let lastTouchY=null;document.addEventListener('touchstart',e=>{if(e.target.close
    trigger.addEventListener('click',()=>wrap.classList.contains('open')?close():open());
    trigger.addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp','Enter',' '].includes(e.key)){e.preventDefault();if(!wrap.classList.contains('open'))open();else if(e.key==='ArrowDown'||e.key==='ArrowUp'){let next=(select.selectedIndex+(e.key==='ArrowDown'?1:-1)+entries.length)%entries.length;entries[next].focus();entries[next].scrollIntoView({block:'nearest'});cue('tick')}else close()}});
    menu.addEventListener('keydown',e=>{const i=entries.indexOf(document.activeElement);if(e.key==='Escape'){close();trigger.focus()}else if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();const n=(i+(e.key==='ArrowDown'?1:-1)+entries.length)%entries.length;entries[n].focus();entries[n].scrollIntoView({block:'nearest'});cue('tick')}});
+   // V25: touch swipes need their own audible steps. On some browsers,
+   // a single-finger gesture moves the menu without generating scroll events
+   // at a useful cadence (whereas a two-finger trackpad gesture does).
+   // Count touch travel in option-sized increments, even during inertial scroll.
+   let touchAnchor=null;
+   menu.addEventListener('touchstart',e=>{
+     if(e.touches.length===1)touchAnchor=e.touches[0].clientY;
+   },{passive:true});
+   menu.addEventListener('touchmove',e=>{
+     if(touchAnchor===null||e.touches.length!==1)return;
+     const y=e.touches[0].clientY;
+     if(Math.abs(y-touchAnchor)>=24){
+       touchAnchor=y;
+       const t=performance.now();
+       if(t-lastTick>65){lastTick=t;cue('tick')}
+     }
+   },{passive:true});
+   menu.addEventListener('touchend',()=>{touchAnchor=null},{passive:true});
+   menu.addEventListener('touchcancel',()=>{touchAnchor=null},{passive:true});
    let lastStep=0;
    menu.addEventListener('scroll',()=>{const step=Math.round(menu.scrollTop/30);if(step!==lastStep){lastStep=step;const t=performance.now();if(t-lastTick>65){lastTick=t;cue('tick')}}},{passive:true});
    select.addEventListener('change',sync);
