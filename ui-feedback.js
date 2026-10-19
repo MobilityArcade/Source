@@ -26,7 +26,7 @@ const footer=document.createElement('div');footer.className='fd-wheel-footer';
 const nav=document.createElement('div');nav.className='fd-wheel-nav';
 const back=document.createElement('button');back.type='button';back.className='fd-wheel-back';back.textContent='← SETTINGS';
 const hint=document.createElement('span');hint.className='fd-wheel-instruction';hint.textContent='SCROLL · TAP TO SELECT';nav.append(back,hint);
-shell.append(windowEl);root.insertBefore(shell,start);
+const smallHint=document.createElement('div');smallHint.className='fd-wheel-hint';smallHint.textContent='SCROLL UP OR DOWN';shell.append(windowEl,smallHint);root.insertBefore(shell,start);
 function items(){return mode==='categories'?labels:[...controls[cat].options].map(o=>o.textContent)}
 function idx(){return mode==='categories'?cat:choice}
 function selected(){return controls[cat].selectedIndex}
@@ -57,18 +57,21 @@ controls.forEach(select=>select.addEventListener('change',render));
 document.addEventListener('click',e=>{const button=e.target.closest('button');if(button&&!button.closest('.fd-wheel-shell'))cue('open')});
 // Match the finish message to the actual cue's computed typography, including mix mode.
 const finish=document.getElementById('finishTitle');const done=document.getElementById('done');
+const finishProps=['font-family','font-style','font-weight','font-stretch','letter-spacing','color','-webkit-text-fill-color','-webkit-text-stroke','-webkit-text-stroke-color','-webkit-text-stroke-width','text-shadow','text-transform','filter','background-image','background-size','background-position','background-clip','-webkit-background-clip','paint-order'];
+let cueSnapshot=null;
+function snapshotCue(){const cueEl=document.getElementById('command');if(!cueEl||!finish)return;const c=getComputedStyle(cueEl);cueSnapshot={};for(const prop of finishProps)cueSnapshot[prop]=c.getPropertyValue(prop);cueSnapshot.transform=c.transform;}
 function syncFinish(){
  const cueEl=document.getElementById('command');if(!finish||!cueEl)return;
- const c=getComputedStyle(cueEl);
- for(const prop of ['font-family','font-style','font-weight','letter-spacing','color','-webkit-text-stroke','-webkit-text-stroke-color','-webkit-text-stroke-width','text-shadow','text-transform','filter','background','background-image','background-clip','-webkit-background-clip']){
-  finish.style.setProperty(prop,c.getPropertyValue(prop),'important');
- }
- finish.style.setProperty('transform',c.transform==='none'?'none':c.transform,'important');
- finish.style.setProperty('font-size','clamp(42px, 8.2vw, 118px)','important');
- finish.style.setProperty('line-height','1.08','important');
+ if(!cueSnapshot)snapshotCue();
+ for(const [prop,value] of Object.entries(cueSnapshot||{})){if(value)finish.style.setProperty(prop,value,'important')}
+ finish.style.setProperty('font-size','clamp(38px, 8.2vw, 118px)','important');
+ finish.style.setProperty('line-height','1.04','important');
  finish.style.setProperty('white-space','nowrap','important');
  finish.style.setProperty('max-width','96vw','important');
 }
+// Capture while the active gameplay cue is still visible, rather than after its screen is hidden.
+const cueEl=document.getElementById('command');
+if(cueEl){new MutationObserver(()=>{if(!document.getElementById('round')?.classList.contains('hidden')&&!cueEl.classList.contains('counting')&&!cueEl.classList.contains('go'))requestAnimationFrame(snapshotCue)}).observe(cueEl,{childList:true,characterData:true,subtree:true});}
 if(done&&finish){new MutationObserver(()=>{if(!done.classList.contains('hidden'))syncFinish()}).observe(done,{attributes:true,attributeFilter:['class']});}
 render();
 })();
