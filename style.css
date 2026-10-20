@@ -382,3 +382,9 @@ html,body,.game{background:#02020a!important}
 #done .finishCenter{width:100%!important;max-width:100%!important;overflow:visible!important}
 #done #finishTitle{display:block!important;width:max-content!important;max-width:none!important;margin:0 auto!important;white-space:nowrap!important;line-height:1.14!important;letter-spacing:normal;transform-origin:center center!important}
 @media(max-width:600px){#setup .fd-wheel-shell{width:92vw!important;max-width:92vw!important}#setup .fd-wheel-window{height:68px!important;min-height:68px!important;max-height:68px!important}#setup .fd-wheel-arrows{width:56px!important}#setup .fd-wheel-track{left:56px!important;right:10px!important}#setup .fd-wheel-item.active{font-size:clamp(17px,4.6vw,25px)!important}}
+
+/* V32: exact shared pill dimensions at every breakpoint/orientation. */
+#setup .fd-wheel-shell,#setup .startButton{width:min(520px,88vw)!important;max-width:min(520px,88vw)!important;box-sizing:border-box!important}
+#setup .fd-wheel-window{width:100%!important;box-sizing:border-box!important}
+@media(max-width:600px){#setup .fd-wheel-shell,#setup .startButton{width:88vw!important;max-width:88vw!important}}
+#done #finishTitle{max-width:none!important;width:max-content!important;white-space:nowrap!important}
