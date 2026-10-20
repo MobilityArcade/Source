@@ -64,22 +64,32 @@ function syncFinish(){
  const cueEl=document.getElementById('command');if(!finish||!cueEl)return;
  if(!cueSnapshot)snapshotCue();
  for(const [prop,value] of Object.entries(cueSnapshot||{})){if(value)finish.style.setProperty(prop,value,'important')}
- // Fit the full completion phrase to the available viewport while keeping it large.
- finish.style.setProperty('font-size','clamp(48px, 10vw, 154px)','important');
+ // Size to the *rendered* viewport rather than a fixed font size; keep cue styling.
+ const cueTransform=cueSnapshot?.transform;
+ finish.style.setProperty('transform',cueTransform&&cueTransform!=='none'?cueTransform:'none','important');
+ finish.style.setProperty('transform-origin','center center','important');
  finish.style.setProperty('width','max-content','important');
  finish.style.setProperty('max-width','none','important');
- finish.style.setProperty('transform-origin','center center','important');
- requestAnimationFrame(()=>{
-   const maxWidth=window.innerWidth*.88;
-   const width=finish.getBoundingClientRect().width;
-   const scale=width>maxWidth?maxWidth/width:1;
-   const cueTransform=cueSnapshot?.transform;
-   finish.style.setProperty('transform', (cueTransform&&cueTransform!=='none'?cueTransform+' ':'')+`scale(${scale})`,'important');
- });
- finish.style.setProperty('line-height','1.04','important');
  finish.style.setProperty('white-space','nowrap','important');
- finish.style.setProperty('max-width','96vw','important');
+ finish.style.setProperty('line-height','1.04','important');
+ const fit=()=>{
+   if(done.classList.contains('hidden'))return;
+   const maxW=window.innerWidth*.89;
+   const maxH=window.innerHeight*.27;
+   let low=16,high=420;
+   for(let i=0;i<16;i++){
+     const mid=(low+high)/2;
+     finish.style.setProperty('font-size',mid+'px','important');
+     const r=finish.getBoundingClientRect();
+     if(r.width<=maxW&&r.height<=maxH)low=mid;else high=mid;
+   }
+   finish.style.setProperty('font-size',low+'px','important');
+ };
+ requestAnimationFrame(fit);
+ if(document.fonts?.ready)document.fonts.ready.then(()=>requestAnimationFrame(fit));
 }
+window.addEventListener('resize',()=>{if(done&&!done.classList.contains('hidden'))syncFinish()});
+window.addEventListener('orientationchange',()=>{if(done&&!done.classList.contains('hidden'))syncFinish()});
 // Capture while the active gameplay cue is still visible, rather than after its screen is hidden.
 const cueEl=document.getElementById('command');
 if(cueEl){new MutationObserver(()=>{if(!document.getElementById('round')?.classList.contains('hidden')&&!cueEl.classList.contains('counting')&&!cueEl.classList.contains('go'))requestAnimationFrame(snapshotCue)}).observe(cueEl,{childList:true,characterData:true,subtree:true});}
