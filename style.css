@@ -388,3 +388,26 @@ html,body,.game{background:#02020a!important}
 #setup .fd-wheel-window{width:100%!important;box-sizing:border-box!important}
 @media(max-width:600px){#setup .fd-wheel-shell,#setup .startButton{width:88vw!important;max-width:88vw!important}}
 #done #finishTitle{max-width:none!important;width:max-content!important;white-space:nowrap!important}
+
+/* V33 — iPhone landscape only: identical selector and action pill heights.
+   Keep portrait, iPad, desktop, and completion screen untouched. */
+@media (orientation:landscape) and (max-height:500px) and (max-width:1000px) and (pointer:coarse){
+  #setup .fd-wheel-window,
+  #setup .startButton{
+    height:70px!important;
+    min-height:70px!important;
+    max-height:70px!important;
+    border-radius:999px!important;
+    box-sizing:border-box!important;
+  }
+  #setup .fd-wheel-shell,
+  #setup .startButton{
+    width:min(520px,88vw)!important;
+    max-width:min(520px,88vw)!important;
+  }
+  #setup .fd-wheel-item.active{
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+  }
+}
