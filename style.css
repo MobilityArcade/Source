@@ -411,3 +411,8 @@ html,body,.game{background:#02020a!important}
     max-height:none!important;
   }
 }
+
+/* V34: chroma-key background is solid #00FF00; preserve all foreground UI. */
+.game[data-background="green"] .stage,
+.game[data-background="green"] #stillBackdrop{background:#00ff00!important;background-image:none!important;filter:none!important;animation:none!important;transition:none!important}
+.game[data-background="green"] .stage > :not(#stillBackdrop){display:none!important}
